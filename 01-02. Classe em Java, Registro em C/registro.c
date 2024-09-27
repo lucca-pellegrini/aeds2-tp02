@@ -1,5 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 
+#include <ctype.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -11,26 +13,27 @@
 
 /// Definições dos tipos de dados. ////////////////////////////////////////////
 
-// Tipos possíveis de Pokémon. Usamos bitmask para economizar memória.
+// Tipos possíveis de Pokémon.
 enum PokeType {
-	BUG = 1 << 0,
-	DARK = 1 << 1,
-	DRAGON = 1 << 2,
-	ELECTRIC = 1 << 3,
-	FAIRY = 1 << 4,
-	FIGHTING = 1 << 5,
-	FIRE = 1 << 6,
-	FLYING = 1 << 7,
-	GHOST = 1 << 8,
-	GRASS = 1 << 9,
-	GROUND = 1 << 10,
-	ICE = 1 << 11,
-	NORMAL = 1 << 12,
-	POISON = 1 << 13,
-	PSYCHIC = 1 << 14,
-	ROCK = 1 << 15,
-	STEEL = 1 << 16,
-	WATER = 1 << 17
+	NO_TYPE = 0,
+	BUG,
+	DARK,
+	DRAGON,
+	ELECTRIC,
+	FAIRY,
+	FIGHTING,
+	FIRE,
+	FLYING,
+	GHOST,
+	GRASS,
+	GROUND,
+	ICE,
+	NORMAL,
+	POISON,
+	PSYCHIC,
+	ROCK,
+	STEEL,
+	WATER
 };
 
 // Definição do tipo de inteiro que armazena o tipo do Pokémon. Deve ter bits
@@ -65,7 +68,6 @@ typedef struct {
 	char *description; // String dinâmica para a descrição.
 
 	// Tipos de 32 bits.
-	PokeType types; // Bitmask dos tipos.
 	Date capture_date; // Data de captura.
 
 	// Tipos de 16 bits.
@@ -73,6 +75,8 @@ typedef struct {
 	uint16_t capture_rate; // Determinante da probabilidade de captura.
 
 	// Tipos de 8 bits.
+	PokeType type1; // Primeiro tipo.
+	PokeType type2; // Segundo tipo.
 	uint8_t generation; // Geração: inteiro não-negativo de 8 bits.
 	bool is_legendary; // Se é ou não um Pokémon lendário.
 
@@ -85,8 +89,7 @@ typedef struct {
 
 int main(int argc, char **argv);
 void ler(Pokemon *restrict p, char *str);
-static PokeAbilities abilities_from_string(const char *str);
-static uint8_t get_type_count(PokeType mask);
+static PokeAbilities abilities_from_string(char *str);
 static PokeType type_from_string(const char *str);
 static const char *type_to_string(PokeType type);
 
@@ -95,63 +98,102 @@ static const char *type_to_string(PokeType type);
 // Lê um Pokémon a partir de uma string. A string é modificada.
 void ler(Pokemon *restrict p, char *str)
 {
-	char *tmp; // Ponteiro temporário para as substrings.
-	char *sav; // Ponteiro auxiliar para `strtok_r()`.
+	char *tok; // Ponteiro temporário para as substrings (tokens).
+	char *sav = NULL; // Ponteiro auxiliar para `strtok_r()`.
 
 	// Lê a chave (id) e a geração.
 	p->id = atoi(strtok_r(str, ",", &sav));
 	p->generation = atoi(strtok_r(NULL, ",", &sav));
 
 	// Lê o nome.
-	tmp = strtok_r(NULL, ",", &sav);
-	p->name = malloc(strlen(tmp) + 1);
-	strcpy(p->name, tmp);
+	tok = strtok_r(NULL, ",", &sav);
+	p->name = malloc(strlen(tok) + 1);
+	strcpy(p->name, tok);
 
 	// Lê a descrição.
-	tmp = strtok_r(NULL, ",", &sav);
-	p->description = malloc(strlen(tmp) + 1);
-	strcpy(p->description, tmp);
+	tok = strtok_r(NULL, ",", &sav);
+	p->description = malloc(strlen(tok) + 1);
+	strcpy(p->description, tok);
 
 	// Lê o primeiro tipo.
-	p->types = type_from_string(strtok_r(NULL, ",", &sav));
+	p->type1 = type_from_string(strtok_r(NULL, ",", &sav));
 
-	// Se existir um segundo tipo, adiciona-o à bitmask `types`.
-	tmp = strtok_r(NULL, ",", &sav);
-	if (tmp[0] != '"') { // Se o primeiro char não for `"`, há segundo tipo.
-		p->types |= type_from_string(tmp);
-		tmp = strtok_r(NULL, ",", &sav); // Avança para o próximo token.
+	// Se existir um segundo tipo, adiciona-o.
+	tok = strtok_r(NULL, ",", &sav);
+	if (tok[0] != '"') { // Se o primeiro char não for `"`, há segundo tipo.
+		p->type2 = type_from_string(tok);
+		tok = strtok_r(NULL, ",", &sav); // Avança para o próximo token.
+	} else {
+		p->type2 = NO_TYPE;
 	}
 
 	// Lê as abilidades.
-	p->abilities = abilities_from_string(strtok_r(NULL, "]", &sav));
-}
+	tok = strtok_r(NULL, "\"", &sav);
+	p->abilities = abilities_from_string(tok);
 
-// Determina quantos tipos o Pokemon tem: 0, 1, ou 2, a partir da bitmask.
-static uint8_t get_type_count(PokeType mask)
-{
-	uint8_t res;
-	if (mask <= 0)
-		res = 0;
-	else if ((mask & (mask - 1)) == 0) // Verifica se é potência de 2.
-		res = 1;
-	else
-		res = 2;
-	return res;
+	// Leia peso e altura, se existirem (alguns Pokémon no CSV não têm, mas
+	// todos que têm peso também têm altura, e vice-versa).
+	if (*(tok + 1) != ',') { // Se o próximo char não for `,`, há peso.
+		p->weight = atof(strtok_r(NULL, ",", &sav));
+		p->height = atof(strtok_r(NULL, ",", &sav));
+	} else {
+		p->height = p-> weight = NAN; // Atribui um peso inválido.
+	}
+
+	// Lê o determinante da probabilidade de captura e se é lendário ou não.
+	p->capture_rate = atoi(strtok_r(NULL, ",", &sav));
+	p->is_legendary = atoi(strtok_r(NULL, ",", &sav));
+
+	// Lê a data de captura.
+	p->capture_date.d = atoi(strtok_r(NULL, "/", &sav));
+	p->capture_date.m = atoi(strtok_r(NULL, "/", &sav));
+	p->capture_date.y = atoi(strtok_r(NULL, "/", &sav));
 }
 
 // Cria uma lista dinâmica de abilidades a partir de uma representação textual.
-static PokeAbilities abilities_from_string(const char *str)
+static PokeAbilities abilities_from_string(char *str)
 {
 	PokeAbilities res = { .num = 1 }; // Há no mínimo uma habilidade.
-	char *tmp; // Ponteiro temporário para as substrings.
-	char *sav; // Ponteiro auxiliar para `strtok_r()`.
+	char *sav = NULL; // Ponteiro auxiliar para `strtok_r()`.
 
 	// Conta o número de abilidades a partir das vírgulas na string.
-	for (int i = 0; str[i] != ']'; ++i)
+	for (int i = 0; str[i] && str[i] != ']'; ++i)
 		if (str[i] == ',')
 			++res.num;
 
-	res.list = malloc(res.num);
+	// Aloca memória para a lista dinâmica.
+	res.list = malloc(res.num * sizeof(char *));
+
+	// Lê cada uma das habilidades.
+	for (int i = 0; i < res.num; ++i) {
+		char *ability; // Ponteiro temporário para a substring (token).
+		int token_len = 0; // Contador to tamanho do token `ability`.
+
+		// Extrai um token da lista.
+		ability = strtok_r(str, ",]", &sav);
+		str = NULL; // Para as chamadas subsequentes a `strtok_r()`.
+
+		// Remove quaisquer caracteres exceto letras, números e espaços.
+		for (int j = 0; ability[j]; ++j)
+			if (isalnum(ability[j]) || isspace(ability[j]))
+				ability[token_len++] = ability[j];
+		ability[token_len] = '\0'; // Termina o token.
+
+		// Remove espaços e aspas iniciais.
+		while (*ability == ' ' || *ability == '\'') {
+			++ability;
+			--token_len;
+		}
+
+		// Remove espaços e aspas finais.
+		while (token_len > 0 && (ability[token_len - 1] == ' ' ||
+					 ability[token_len - 1] == '\''))
+			ability[--token_len] = '\0';
+
+		// Aloca a memória para a abilidade e a salva no struct.
+		res.list[i] = malloc(token_len + 1);
+		strcpy(res.list[i], ability);
+	}
 
 	return res;
 }
