@@ -327,8 +327,8 @@ static const char *type_to_string(PokeType type)
 		res = "water";
 		break;
 	default:
-		res = "unknown";
-		break;
+		fputs("FATAL: Pokémon tem um tipo desconhecido!\n", stderr);
+		exit(EXIT_FAILURE);
 	}
 
 	return res;
