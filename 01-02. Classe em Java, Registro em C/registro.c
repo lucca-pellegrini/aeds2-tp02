@@ -40,10 +40,10 @@ enum PokeType {
 // suficientes para todos os tipos.
 typedef uint32_t PokeType;
 
-// Lista de abilidades de um Pokémon.
+// Lista de habilidades de um Pokémon.
 typedef struct {
 	char **list; // Lista dinâmica de strings dinâmicas.
-	uint8_t num; // Quantidade de abilidades.
+	uint8_t num; // Quantidade de habilidades.
 } PokeAbilities;
 
 // Data.
@@ -82,7 +82,7 @@ typedef struct {
 
 	// Tipo de tamamho irregular (72 bits) no final evita a introdução de
 	// preenchimento no meio da struct.
-	PokeAbilities abilities; // Lista dinâmica das abilidades.
+	PokeAbilities abilities; // Lista dinâmica das habilidades.
 } Pokemon;
 
 /// Declarações de todas as funções. //////////////////////////////////////////
@@ -101,6 +101,7 @@ void ler(Pokemon *restrict p, char *str)
 {
 	char *tok; // Ponteiro temporário para as substrings (tokens).
 	char *sav = NULL; // Ponteiro auxiliar para `strtok_r()`.
+	int tok_count = 0; // Contador auxiliar.
 
 	// Lê a chave (id) e a geração.
 	p->id = atoi(strtok_r(str, ",", &sav));
@@ -117,29 +118,81 @@ void ler(Pokemon *restrict p, char *str)
 	strcpy(p->description, tok);
 
 	// Lê o primeiro tipo.
-	p->type1 = type_from_string(strtok_r(NULL, ",", &sav));
+	p->type1 = type_from_string(tok = strtok_r(NULL, ",", &sav));
+	// printf("Token before checking second type: {%s}\n", tok);
 
 	// Se existir um segundo tipo, adiciona-o.
-	tok = strtok_r(NULL, ",", &sav);
-	if (tok[0] != '"') { // Se o primeiro char não for `"`, há segundo tipo.
+	tok = strtok_r(NULL, "[,", &sav);
+	// printf("Ambiguous token {%s} ", tok);
+	if (*tok != '"') {
+		// puts("is a type!");
 		p->type2 = type_from_string(tok);
-		tok = strtok_r(NULL, ",", &sav); // Avança para o próximo token.
 	} else {
+		// puts("not a type!");
 		p->type2 = NO_TYPE;
 	}
 
-	// Lê as abilidades.
-	tok = strtok_r(NULL, "\"", &sav);
+	 // Avança para o próximo token (lista de habilidades).
+	tok = strtok_r(NULL, "]", &sav);
+
+	// Lê as habilidades.
+	// printf("\nInvocando habilidades com: {%s}\n", tok);
 	p->abilities = abilities_from_string(tok);
+	// putchar('\n');
+
+	/* for (int i = 0; i <= tok-str; ++i) {
+		if (str[i])
+			putchar(str[i]);
+		else
+			printf("\\0");
+	}
+	printf("<- (Estamos aqui!) -> ");
+	for (int i = tok-str+1; str[i] != '\n'; ++i) {
+		if (str[i])
+			putchar(str[i]);
+		else
+			printf("\\0");
+	}
+	putchar('\n'); */
+
+	// A operação acima altera nossa string e invalida os termos
+	// subsequentes. Por isso, é neccessário mover até uma posição
+	// conhecida (a data, que é o único lugar onde veremos um '/'), e
+	// regressar até a primeira posição válida.
+	while (*str != '/')
+		++str;
+	while (*(str - 1) != '\0')
+		--str;
+	sav = NULL; // Reseta o ponteiro de `strtok_r()`.
+	// puts("Movemos com sucesso");
+	// printf("Restante: %s", str);
+
+	// Leia peso e altura, se existirem (alguns Pokémon no CSV não têm, mas
+	// todos que têm peso também têm altura, e vice-versa). Por isso,
+	// determina quantos campos não vazios restam.
+	for (int i = 0; str[i]; ++i)
+		// Vírgulas não-consecutivas indicam campo não vazio.
+		if (str[i] == ',' && str[i + 1] != ',')
+			++tok_count;
+	// printf("Há %d vírgulas restantes.\n", tok_count);
+
+	strtok_r(str, ",", &sav); // Descarta o token contendo `"`.
 
 	// Leia peso e altura, se existirem (alguns Pokémon no CSV não têm, mas
 	// todos que têm peso também têm altura, e vice-versa).
-	if (*(tok + 1) != ',') { // Se o próximo char não for `,`, há peso.
+	// tok = strtok_r(NULL, ",", &sav);
+	// printf("Estamos em: {%s}\n", tok);
+	if (tok_count == 5) { // Se restam 5 itens, o peso e a altura existem.
+		// puts("lendo peso e altura");
 		p->weight = atof(strtok_r(NULL, ",", &sav));
+		// printf("Peso ok: %gkg\n", p->weight);
 		p->height = atof(strtok_r(NULL, ",", &sav));
+		// puts("altura ok");
 	} else {
+		// puts("não há peso ou altura");
 		p->height = p->weight = NAN; // Atribui um peso inválido.
 	}
+	// printf("Peso e altura lidos: %gkg, %gm\n", p->weight, p->height);
 
 	// Lê o determinante da probabilidade de captura e se é lendário ou não.
 	p->capture_rate = atoi(strtok_r(NULL, ",", &sav));
@@ -148,7 +201,7 @@ void ler(Pokemon *restrict p, char *str)
 	// Lê a data de captura.
 	p->capture_date.d = atoi(strtok_r(NULL, "/", &sav));
 	p->capture_date.m = atoi(strtok_r(NULL, "/", &sav));
-	p->capture_date.y = atoi(strtok_r(NULL, "/", &sav));
+	p->capture_date.y = atoi(strtok_r(NULL, "/\n\r", &sav));
 }
 
 // Printa um Pokémon recebido por referência em `stdout`.
@@ -164,22 +217,25 @@ void imprimir(Pokemon *restrict const p)
 	for (int i = 1; i < p->abilities.num; ++i)
 		printf(", '%s'", p->abilities.list[i]);
 
-	printf("] - %gkg - %gm, %u%% - %s - %u gen] - %02u/%02u/%04u",
+	printf("] - %gkg - %gm, %u%% - %s - %u gen] - %02u/%02u/%04u\n",
 	       p->weight, p->height, p->capture_rate,
 	       p->is_legendary ? "true" : "false", p->generation,
 	       p->capture_date.d, p->capture_date.m, p->capture_date.y);
 }
 
-// Cria uma lista dinâmica de abilidades a partir de uma representação textual.
+// Cria uma lista dinâmica de habilidades a partir de uma representação textual.
 static PokeAbilities abilities_from_string(char *str)
 {
 	PokeAbilities res = { .num = 1 }; // Há no mínimo uma habilidade.
-	char *sav = NULL; // Ponteiro auxiliar para `strtok_r()`.
+	char *sav = NULL;
 
-	// Conta o número de abilidades a partir das vírgulas na string.
+	// printf("Lendo habilidades de: {%s}: ", str);
+
+	// Conta o número de habilidades a partir das vírgulas na string.
 	for (int i = 0; str[i] && str[i] != ']'; ++i)
 		if (str[i] == ',')
 			++res.num;
+	// printf("%u habilidades detectadas\n", res.num);
 
 	// Aloca memória para a lista dinâmica.
 	res.list = malloc(res.num * sizeof(char *));
@@ -190,8 +246,7 @@ static PokeAbilities abilities_from_string(char *str)
 		int token_len = 0; // Contador to tamanho do token `ability`.
 
 		// Extrai um token da lista.
-		ability = strtok_r(str, ",]", &sav);
-		str = NULL; // Para as chamadas subsequentes a `strtok_r()`.
+		ability = strtok_r(i ? NULL : str, ",]", &sav);
 
 		// Remove quaisquer caracteres exceto letras, números e espaços.
 		for (int j = 0; ability[j]; ++j)
@@ -210,7 +265,9 @@ static PokeAbilities abilities_from_string(char *str)
 					 ability[token_len - 1] == '\''))
 			ability[--token_len] = '\0';
 
-		// Aloca a memória para a abilidade e a salva no struct.
+		// printf("Habilidade %u/%u: {%s}\n", i + 1, res.num, ability);
+
+		// Aloca a memória para a habilidade e a salva no struct.
 		res.list[i] = malloc(token_len + 1);
 		strcpy(res.list[i], ability);
 	}
@@ -223,46 +280,44 @@ static PokeType type_from_string(const char *str)
 {
 	enum PokeType res;
 
-	if (!strcmp(str, "bug")) {
+	if (!strcmp(str, "bug"))
 		res = BUG;
-	} else if (!strcmp(str, "dark")) {
+	else if (!strcmp(str, "dark"))
 		res = DARK;
-	} else if (!strcmp(str, "dragon")) {
+	else if (!strcmp(str, "dragon"))
 		res = DRAGON;
-	} else if (!strcmp(str, "electric")) {
+	else if (!strcmp(str, "electric"))
 		res = ELECTRIC;
-	} else if (!strcmp(str, "fairy")) {
+	else if (!strcmp(str, "fairy"))
 		res = FAIRY;
-	} else if (!strcmp(str, "fighting")) {
+	else if (!strcmp(str, "fighting"))
 		res = FIGHTING;
-	} else if (!strcmp(str, "fire")) {
+	else if (!strcmp(str, "fire"))
 		res = FIRE;
-	} else if (!strcmp(str, "flying")) {
+	else if (!strcmp(str, "flying"))
 		res = FLYING;
-	} else if (!strcmp(str, "ghost")) {
+	else if (!strcmp(str, "ghost"))
 		res = GHOST;
-	} else if (!strcmp(str, "grass")) {
+	else if (!strcmp(str, "grass"))
 		res = GRASS;
-	} else if (!strcmp(str, "ground")) {
+	else if (!strcmp(str, "ground"))
 		res = GROUND;
-	} else if (!strcmp(str, "ice")) {
+	else if (!strcmp(str, "ice"))
 		res = ICE;
-	} else if (!strcmp(str, "normal")) {
+	else if (!strcmp(str, "normal"))
 		res = NORMAL;
-	} else if (!strcmp(str, "poison")) {
+	else if (!strcmp(str, "poison"))
 		res = POISON;
-	} else if (!strcmp(str, "psychic")) {
+	else if (!strcmp(str, "psychic"))
 		res = PSYCHIC;
-	} else if (!strcmp(str, "rock")) {
+	else if (!strcmp(str, "rock"))
 		res = ROCK;
-	} else if (!strcmp(str, "steel")) {
+	else if (!strcmp(str, "steel"))
 		res = STEEL;
-	} else if (!strcmp(str, "water")) {
+	else if (!strcmp(str, "water"))
 		res = WATER;
-	} else {
-		fputs("FATAL: Pokémon tem um tipo desconhecido!\n", stderr);
-		exit(EXIT_FAILURE);
-	}
+	else
+		res = NO_TYPE;
 
 	return res;
 }
@@ -336,8 +391,28 @@ static const char *type_to_string(PokeType type)
 
 /// Programa principal. ///////////////////////////////////////////////////////
 
+#define NUM_PK 801 // Número máximo de Pokémon no CSV.
+#define IN_SZ 1 << 10 // Tamanho do buffer estático de entrada.
+
 int main(int argc, char **argv)
 {
-	(void)argc, (void)argv;
+	// Stream do arquivo CSV.
+	FILE *csv = fopen((argc > 1) ? argv[1] : DEFAULT_DB, "r");
+	char input[IN_SZ] = { 0 }; // Buffer de entrada começa vazio (só '\0').
+	int n = 0; // Número de linhas de entrada lidas.
+	Pokemon *pokemon[NUM_PK] = { NULL }; // Array de Pokémon começa vazio.
+
+	fgets(input, IN_SZ, csv); // Descarta a primeira linha (cabeçalho).
+
+	while (fgets(input, IN_SZ, csv)) {
+		// puts("\n\nLendo pokemon:");
+		// printf("%s", input);
+		pokemon[n] = malloc(sizeof(Pokemon));
+		ler(pokemon[n], input);
+		// printf("Pokemon lido: ");
+		// imprimir(pokemon[n]);
+		n += 1;
+	}
+
 	return EXIT_SUCCESS;
 }

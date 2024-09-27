@@ -1,6 +1,6 @@
 # Arquivos que queremos compilar.
 JAVABIN   := $(JAVACLASS).class
-BIN       := $(CBIN).o $(JAVABIN)
+BIN       := $(CBIN) $(JAVABIN)
 
 # Arquivos com entrada e saída dos programas.
 INPUT  := pub.in
@@ -32,8 +32,8 @@ all: $(BIN)
 # Alvos que não são arquivos.
 .PHONY: all clean test testc testjava
 
-testc: $(CBIN).o
-	$(CBIN).o $(DB) < $(INPUT) > $(TEST)
+testc: $(CBIN)
+	$(CBIN) $(DB) < $(INPUT) > $(TEST)
 	@$(DIFF) --report-identical-files --strip-trailing-cr $(OUTPUT) $(TEST)
 
 testjava: $(JAVABIN)
