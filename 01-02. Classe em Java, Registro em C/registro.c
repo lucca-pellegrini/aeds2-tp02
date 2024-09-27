@@ -89,6 +89,7 @@ typedef struct {
 
 int main(int argc, char **argv);
 void ler(Pokemon *restrict p, char *str);
+void imprimir(Pokemon *restrict const p);
 static PokeAbilities abilities_from_string(char *str);
 static PokeType type_from_string(const char *str);
 static const char *type_to_string(PokeType type);
@@ -137,7 +138,7 @@ void ler(Pokemon *restrict p, char *str)
 		p->weight = atof(strtok_r(NULL, ",", &sav));
 		p->height = atof(strtok_r(NULL, ",", &sav));
 	} else {
-		p->height = p-> weight = NAN; // Atribui um peso inválido.
+		p->height = p->weight = NAN; // Atribui um peso inválido.
 	}
 
 	// Lê o determinante da probabilidade de captura e se é lendário ou não.
@@ -148,6 +149,25 @@ void ler(Pokemon *restrict p, char *str)
 	p->capture_date.d = atoi(strtok_r(NULL, "/", &sav));
 	p->capture_date.m = atoi(strtok_r(NULL, "/", &sav));
 	p->capture_date.y = atoi(strtok_r(NULL, "/", &sav));
+}
+
+// Printa um Pokémon recebido por referência em `stdout`.
+void imprimir(Pokemon *restrict const p)
+{
+	printf("[#%d -> %s: %s - [%s", p->id, p->name, p->description,
+	       type_to_string(p->type1));
+
+	if (p->type2 != NO_TYPE)
+		printf(", %s", type_to_string(p->type2));
+
+	printf("] - ['%s'", p->abilities.list[0]);
+	for (int i = 1; i < p->abilities.num; ++i)
+		printf(", '%s'", p->abilities.list[i]);
+
+	printf("] - %gkg - %gm, %u%% - %s - %u gen] - %02u/%02u/%04u",
+	       p->weight, p->height, p->capture_rate,
+	       p->is_legendary ? "true" : "false", p->generation,
+	       p->capture_date.d, p->capture_date.m, p->capture_date.y);
 }
 
 // Cria uma lista dinâmica de abilidades a partir de uma representação textual.
