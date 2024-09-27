@@ -132,7 +132,7 @@ void ler(Pokemon *restrict p, char *str)
 		p->type2 = NO_TYPE;
 	}
 
-	 // Avança para o próximo token (lista de habilidades).
+	// Avança para o próximo token (lista de habilidades).
 	tok = strtok_r(NULL, "]", &sav);
 
 	// Lê as habilidades.
@@ -190,7 +190,7 @@ void ler(Pokemon *restrict p, char *str)
 		// puts("altura ok");
 	} else {
 		// puts("não há peso ou altura");
-		p->height = p->weight = NAN; // Atribui um peso inválido.
+		p->height = p->weight = 0; // Atribui um peso inválido.
 	}
 	// printf("Peso e altura lidos: %gkg, %gm\n", p->weight, p->height);
 
@@ -207,17 +207,17 @@ void ler(Pokemon *restrict p, char *str)
 // Printa um Pokémon recebido por referência em `stdout`.
 void imprimir(Pokemon *restrict const p)
 {
-	printf("[#%d -> %s: %s - [%s", p->id, p->name, p->description,
+	printf("[#%d -> %s: %s - ['%s'", p->id, p->name, p->description,
 	       type_to_string(p->type1));
 
 	if (p->type2 != NO_TYPE)
-		printf(", %s", type_to_string(p->type2));
+		printf(", '%s'", type_to_string(p->type2));
 
 	printf("] - ['%s'", p->abilities.list[0]);
 	for (int i = 1; i < p->abilities.num; ++i)
 		printf(", '%s'", p->abilities.list[i]);
 
-	printf("] - %gkg - %gm, %u%% - %s - %u gen] - %02u/%02u/%04u\n",
+	printf("] - %0.1lfkg - %0.1lfm - %u%% - %s - %u gen] - %02u/%02u/%04u\n",
 	       p->weight, p->height, p->capture_rate,
 	       p->is_legendary ? "true" : "false", p->generation,
 	       p->capture_date.d, p->capture_date.m, p->capture_date.y);
@@ -412,6 +412,12 @@ int main(int argc, char **argv)
 		// printf("Pokemon lido: ");
 		// imprimir(pokemon[n]);
 		n += 1;
+	}
+
+	fgets(input, IN_SZ, stdin);
+	while (strcmp(input, "FIM\n")) {
+		imprimir(pokemon[atoi(input) - 1]);
+		fgets(input, IN_SZ, stdin);
 	}
 
 	return EXIT_SUCCESS;
