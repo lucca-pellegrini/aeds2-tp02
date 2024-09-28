@@ -1,8 +1,8 @@
-import java.awt.print.Printable;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.Scanner;
 import java.util.Vector;
 
@@ -19,8 +19,8 @@ public class Classe {
 class Pokemon implements /* Comparable<Pokemon>, */ Cloneable {
     int id, generation, captureRate;
     String name, description;
-    ArrayList<PokeType> types;
-    ArrayList<String> abilities;
+    List<PokeType> types;
+    List<String> abilities;
     double weight, height;
     boolean isLegendary;
     LocalDate captureDate;
@@ -109,14 +109,19 @@ class Pokemon implements /* Comparable<Pokemon>, */ Cloneable {
 
     @Override
     public Pokemon clone() {
-        Pokemon c = (Pokemon) super.clone();
+        try {
+            Pokemon c = (Pokemon) super.clone();
 
-        // Copia as listas, que são referências (Strings também são
-        // referências, mas são imutáveis, então não é necessário).
-        c.types = new ArrayList<>(this.types);
-        c.abilities = new ArrayList<>(this.abilities);
+            // Copia as listas, que são referências (Strings também são
+            // referências, mas são imutáveis, então não é necessário).
+            c.types = new ArrayList<>(this.types);
+            c.abilities = new ArrayList<>(this.abilities);
 
-        return c;
+            return c;
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+            throw new AssertionError(); // Nunca deve acontecer.
+        }
     }
 
     // Getters e Setters.
@@ -161,19 +166,19 @@ class Pokemon implements /* Comparable<Pokemon>, */ Cloneable {
         this.description = description;
     }
 
-    public ArrayList getTypes() {
+    public List<PokeType> getTypes() {
         return types;
     }
 
-    public void setTypes(ArrayList types) {
+    public void setTypes(List<PokeType> types) {
         this.types = types;
     }
 
-    public ArrayList getAbilities() {
+    public List<String> getAbilities() {
         return abilities;
     }
 
-    public void setAbilities(ArrayList abilities) {
+    public void setAbilities(List<String> abilities) {
         this.abilities = abilities;
     }
 
