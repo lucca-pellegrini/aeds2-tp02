@@ -113,14 +113,16 @@ void ler(Pokemon *restrict p, char *str)
 	// porque o método `abilities_from_string()` invalidará a string `str`
 	// antes dessa posição.
 	char *const post_list = strstr(str, "']\",") + 3;
+	char *tok = NULL; // Ponteiro temporário para as substrings (tokens).
+	char *sav = NULL; // Ponteiro auxiliar para o estado de `strtok_r()`.
+	int tok_count = 0; // Contador auxiliar de tokens.
+
+	// Verifica erro ao buscar a substring.
 	if (!post_list) {
 		int errsv = errno;
 		perror("Tentei criar Pokémon com uma string mal formada");
 		exit(errsv);
 	}
-	char *tok = NULL; // Ponteiro temporário para as substrings (tokens).
-	char *sav = NULL; // Ponteiro auxiliar para o estado de `strtok_r()`.
-	int tok_count = 0; // Contador auxiliar de tokens.
 
 	// Lê a chave (id) e a geração.
 	p->id = atoi(strtok_r(str, ",", &sav));
