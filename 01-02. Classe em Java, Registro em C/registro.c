@@ -350,29 +350,38 @@ static const char *type_to_string(PokeType type)
 /// Programa principal. ///////////////////////////////////////////////////////
 
 #define NUM_PK 801 // Número máximo de Pokémon no CSV.
-#define IN_SZ 1 << 10 // Tamanho do buffer estático de entrada.
 
 int main(int argc, char **argv)
 {
 	// Stream do arquivo CSV.
 	FILE *csv = fopen((argc > 1) ? argv[1] : DEFAULT_DB, "r");
-	char input[IN_SZ] = { 0 }; // Buffer de entrada começa vazio (só '\0').
-	int n = 0; // Número de linhas de entrada lidas.
 	Pokemon *pokemon[NUM_PK] = { NULL }; // Array de Pokémon começa vazio.
+	int n = 0; // Número de Pokémon lidos.
+	char *input = NULL; // Buffer para as linhas de entrada.
+	size_t tam; // Capacidade do buffer de entrada.
 
-	fgets(input, IN_SZ, csv); // Descarta a primeira linha (cabeçalho).
+	// Descarta a primeira linha (cabeçalho).
+	while (fgetc(csv) != '\n')
+		;
 
-	while (fgets(input, IN_SZ, csv)) {
+	// Lê os Pokémon do CSV.
+	while (getline(&input, &tam, csv) != -1) {
 		pokemon[n] = calloc(1, sizeof(Pokemon));
 		ler(pokemon[n], input);
 		n += 1;
 	}
 
-	fgets(input, IN_SZ, stdin);
-	while (strcmp(input, "FIM\n")) {
-		imprimir(pokemon[atoi(input) - 1]);
-		fgets(input, IN_SZ, stdin);
+	// Lê as buscas da entrada padrão até encontrar "FIM".
+	while (getline(&input, &tam, stdin) != -1) {
+		if (strcmp(input, "FIM\n")) {
+			int idx = atoi(input) - 1;
+			if (idx > -1 && idx < n)
+				imprimir(pokemon[idx]);
+			else
+				puts("Pokémon indisponível.");
+		}
 	}
 
+	free(input);
 	return EXIT_SUCCESS;
 }
