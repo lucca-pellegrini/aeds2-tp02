@@ -1,17 +1,37 @@
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 import java.util.Scanner;
-import java.util.Vector;
 
 public class Classe {
     public static void main(String[] args) {
-        try (Scanner sc = new Scanner(System.in)) {
-        } catch (Exception e) {
+        List<Pokemon> pokemon = new ArrayList<Pokemon>(801);
+
+        // Stream do arquivo CSV.
+        try (Scanner csvScanner = new Scanner(new File((args.length > 0) ? args[0] : "/tmp/pokemon.csv"))) {
+            // Descarta a primeira linha (cabeçalho).
+            csvScanner.nextLine();
+
+            // Lê cada linha do CSV e cria um Pokémon.
+            while (csvScanner.hasNextLine()) {
+                String input = csvScanner.nextLine();
+                pokemon.add(new Pokemon(input));
+            }
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
             return;
+        }
+
+        // Lê da entrada padrão até encontrar "FIM".
+        try (Scanner sc = new Scanner(System.in)) {
+            String input;
+            while (!(input = sc.nextLine()).equals("FIM"))
+                pokemon.get(Integer.parseInt(input) - 1).imprimir();
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
@@ -42,45 +62,39 @@ class Pokemon implements /* Comparable<Pokemon>, */ Cloneable {
         String[] s1 = sec[0].split(",");
         String[] s2 = sec[2].split(",");
 
-        // Cria um array de tamanho fixo para armazenar todos os membros.
-        String[] members = new String[s1.length + s2.length];
-
-        // Copia os elementos para o array único
-        int i = 0;
-        for (String element : s1)
-            members[i++] = element;
-        for (String element : s2)
-            members[i++] = element;
-
         // Lê os elementos iniciais.
-        id = Integer.parseInt(members[0]);
-        generation = Integer.parseInt(members[1]);
-        name = members[2];
-        description = members[3];
+        id = Integer.parseInt(s1[0]);
+        generation = Integer.parseInt(s1[1]);
+        name = s1[2];
+        description = s1[3];
 
         // Adiciona os tipos. Usamos o .valueOf() do enum para facilitar.
         types = new ArrayList<>();
-        types.add(PokeType.valueOf(members[4].toUpperCase()));
-        if (!members[5].isEmpty()) // Se tiver segundo tipo, adiciona-o.
-            types.add(PokeType.valueOf(members[5].toUpperCase()));
+        types.add(PokeType.valueOf(s1[4].toUpperCase()));
+        // Se tiver segundo tipo, adiciona-o.
+        if (s1.length > 5 && !s1[5].isEmpty())
+            types.add(PokeType.valueOf(s1[5].toUpperCase()));
 
         // Remove os caracteres extra da lista de abilidades e as adiciona.
         abilities = new ArrayList<>();
-        for (String a : sec[1].split(", "))
-            abilities.add(a.replace("[", "").replace("]", "").replace("'", ""));
+        for (String a : sec[1].split(", ")) {
+            a = a.replace("[", "").replace("]", "").replace("'", "");
+            if (!a.isEmpty())
+                abilities.add(a);
+        }
 
         // Adiciona peso e altura. Se estiverem vazios, devem ser 0.
-        String weightStr = members[6];
-        String heightStr = members[7];
+        String weightStr = s2[1];
+        String heightStr = s2[2];
         weight = weightStr.isEmpty() ? 0 : Double.parseDouble(weightStr);
         height = heightStr.isEmpty() ? 0 : Double.parseDouble(heightStr);
 
         // Lê o determinante da probabilidade de captura e se é lendário ou não.
-        captureRate = Integer.parseInt(members[8]);
-        isLegendary = (Integer.parseInt(members[9]) == 1);
+        captureRate = Integer.parseInt(s2[3]);
+        isLegendary = (Integer.parseInt(s2[4]) == 1);
 
         // Adiciona data de captura.
-        String[] membrosData = members[10].split("/");
+        String[] membrosData = s2[5].split("/");
         captureDate = LocalDate.of(Integer.parseInt(membrosData[2]), // ano
                 Integer.parseInt(membrosData[1]), // mês
                 Integer.parseInt(membrosData[0])); // dia
@@ -93,16 +107,18 @@ class Pokemon implements /* Comparable<Pokemon>, */ Cloneable {
     @Override
     public String toString() {
         String res = new String("[#");
-        res += id + " -> " + name + ": " + description + " - ['" + types.get(0) +
-                ((types.size() == 2) ? types.get(1) : "") + "] - [ '"
-                + "'";
+        res += id + " -> " + name + ": " + description + " - ['" +
+                types.get(0).toString().toLowerCase() +
+                ((types.size() == 2) ? "', '" + types.get(1).toString().toLowerCase() : "") +
+                "'] - ['" + abilities.get(0) + "'";
 
-        for (String a : abilities)
-            res += ", '" + a + "'";
+        for (int i = 1; i < abilities.size(); ++i)
+            res += ", '" + abilities.get(i) + "'";
 
         res += "] - " + weight + "kg - " + height + "m - " + captureRate + "% - " +
-                generation + "gen] - " + captureDate.getDayOfMonth() + '/' +
-                captureDate.getMonthValue() + '/' + captureDate.getYear();
+                isLegendary() + " - " + generation + " gen] - " +
+                String.format("%02d/%02d/%04d", captureDate.getDayOfMonth(),
+                        captureDate.getMonthValue(), captureDate.getYear());
 
         return res;
     }
