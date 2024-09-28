@@ -139,10 +139,7 @@ void ler(Pokemon *restrict p, char *str)
 
 	// Lẽ o segundo tipo, se existir.
 	tok = strtok_r(NULL, "[,", &sav);
-	if (*tok != '"')
-		p->type2 = type_from_string(tok);
-	else
-		p->type2 = NO_TYPE;
+	p->type2 = (*tok == '"') ? NO_TYPE : type_from_string(tok);
 
 	// Lê a lista de habilidades.
 	p->abilities = abilities_from_string(strtok_r(NULL, "]", &sav));
@@ -275,14 +272,10 @@ static PokeAbilities abilities_from_string(char *str)
 	PokeAbilities res = { .num = 1 }; // Há no mínimo uma habilidade.
 	char *sav = NULL;
 
-	// printf("Lendo habilidades de: {%s}: ", str);
-
 	// Conta o número de habilidades a partir das vírgulas na string.
 	for (int i = 0; str[i] && str[i] != ']'; ++i)
 		if (str[i] == ',')
 			++res.num;
-	// printf("%u habilidades detectadas\n", res.num);
-
 	// Aloca memória para a lista dinâmica.
 	res.list = malloc(res.num * sizeof(char *));
 	if (!res.list) {
@@ -326,8 +319,6 @@ static PokeAbilities abilities_from_string(char *str)
 		while (token_len > 0 && (ability[token_len - 1] == ' ' ||
 					 ability[token_len - 1] == '\''))
 			ability[--token_len] = '\0';
-
-		// printf("Habilidade %u/%u: {%s}\n", i + 1, res.num, ability);
 
 		// Aloca a memória para a habilidade e a salva no struct.
 		res.list[i] = strdup(ability);
