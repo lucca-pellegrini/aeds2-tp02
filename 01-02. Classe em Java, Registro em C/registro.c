@@ -38,7 +38,7 @@ enum PokeType {
 
 // Definição do tipo de inteiro que armazena o tipo do Pokémon. Deve ter bits
 // suficientes para todos os tipos.
-typedef uint32_t PokeType;
+typedef uint8_t PokeType;
 
 // Lista de habilidades de um Pokémon.
 typedef struct {
