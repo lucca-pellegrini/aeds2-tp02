@@ -1,7 +1,6 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <ctype.h>
-#include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
