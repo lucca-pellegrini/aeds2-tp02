@@ -98,9 +98,13 @@ static const char *type_to_string(PokeType type);
 // Lê um Pokémon a partir de uma string. A string é modificada.
 void ler(Pokemon *restrict p, char *str)
 {
-	char *tok; // Ponteiro temporário para as substrings (tokens).
-	char *sav = NULL; // Ponteiro auxiliar para `strtok_r()`.
-	int tok_count = 0; // Contador auxiliar.
+	// Posição inicial dos termos após a lista de habilidades. Necessária
+	// porque o método `abilities_from_string()` invalidará a string `str`
+	// antes dessa posição.
+	char *const post_list = strstr(str, "']\",") + 3;
+	char *tok = NULL; // Ponteiro temporário para as substrings (tokens).
+	char *sav = NULL; // Ponteiro auxiliar para o estado de `strtok_r()`.
+	int tok_count = 0; // Contador auxiliar de tokens.
 
 	// Lê a chave (id) e a geração.
 	p->id = atoi(strtok_r(str, ",", &sav));
@@ -117,54 +121,19 @@ void ler(Pokemon *restrict p, char *str)
 	strcpy(p->description, tok);
 
 	// Lê o primeiro tipo.
-	p->type1 = type_from_string(tok = strtok_r(NULL, ",", &sav));
-	// printf("Token before checking second type: {%s}\n", tok);
+	p->type1 = type_from_string(strtok_r(NULL, ",", &sav));
 
-	// Se existir um segundo tipo, adiciona-o.
+	// Lẽ o segundo tipo, se existir.
 	tok = strtok_r(NULL, "[,", &sav);
-	// printf("Ambiguous token {%s} ", tok);
-	if (*tok != '"') {
-		// puts("is a type!");
+	if (*tok != '"')
 		p->type2 = type_from_string(tok);
-	} else {
-		// puts("not a type!");
+	else
 		p->type2 = NO_TYPE;
-	}
 
-	// Avança para o próximo token (lista de habilidades).
-	tok = strtok_r(NULL, "]", &sav);
-
-	// Lê as habilidades.
-	// printf("\nInvocando habilidades com: {%s}\n", tok);
-	p->abilities = abilities_from_string(tok);
-	// putchar('\n');
-
-	/* for (int i = 0; i <= tok-str; ++i) {
-		if (str[i])
-			putchar(str[i]);
-		else
-			printf("\\0");
-	}
-	printf("<- (Estamos aqui!) -> ");
-	for (int i = tok-str+1; str[i] != '\n'; ++i) {
-		if (str[i])
-			putchar(str[i]);
-		else
-			printf("\\0");
-	}
-	putchar('\n'); */
-
-	// A operação acima altera nossa string e invalida os termos
-	// subsequentes. Por isso, é neccessário mover até uma posição
-	// conhecida (a data, que é o único lugar onde veremos um '/'), e
-	// regressar até a primeira posição válida.
-	while (*str != '/')
-		++str;
-	while (*(str - 1) != '\0')
-		--str;
+	// Lê a lista de habilidades.
+	p->abilities = abilities_from_string(strtok_r(NULL, "]", &sav));
+	str = post_list; // Avança para após a lista de habilidades.
 	sav = NULL; // Reseta o ponteiro de `strtok_r()`.
-	// puts("Movemos com sucesso");
-	// printf("Restante: %s", str);
 
 	// Leia peso e altura, se existirem (alguns Pokémon no CSV não têm, mas
 	// todos que têm peso também têm altura, e vice-versa). Por isso,
@@ -173,28 +142,18 @@ void ler(Pokemon *restrict p, char *str)
 		// Vírgulas não-consecutivas indicam campo não vazio.
 		if (str[i] == ',' && str[i + 1] != ',')
 			++tok_count;
-	// printf("Há %d vírgulas restantes.\n", tok_count);
-
-	strtok_r(str, ",", &sav); // Descarta o token contendo `"`.
 
 	// Leia peso e altura, se existirem (alguns Pokémon no CSV não têm, mas
 	// todos que têm peso também têm altura, e vice-versa).
-	// tok = strtok_r(NULL, ",", &sav);
-	// printf("Estamos em: {%s}\n", tok);
 	if (tok_count == 5) { // Se restam 5 itens, o peso e a altura existem.
-		// puts("lendo peso e altura");
-		p->weight = atof(strtok_r(NULL, ",", &sav));
-		// printf("Peso ok: %gkg\n", p->weight);
+		p->weight = atof(strtok_r(str, ",", &sav));
 		p->height = atof(strtok_r(NULL, ",", &sav));
-		// puts("altura ok");
 	} else {
-		// puts("não há peso ou altura");
 		p->height = p->weight = 0; // Atribui um peso inválido.
 	}
-	// printf("Peso e altura lidos: %gkg, %gm\n", p->weight, p->height);
 
 	// Lê o determinante da probabilidade de captura e se é lendário ou não.
-	p->capture_rate = atoi(strtok_r(NULL, ",", &sav));
+	p->capture_rate = atoi(strtok_r(sav ? NULL : str, ",", &sav));
 	p->is_legendary = atoi(strtok_r(NULL, ",", &sav));
 
 	// Lê a data de captura.
@@ -404,12 +363,8 @@ int main(int argc, char **argv)
 	fgets(input, IN_SZ, csv); // Descarta a primeira linha (cabeçalho).
 
 	while (fgets(input, IN_SZ, csv)) {
-		// puts("\n\nLendo pokemon:");
-		// printf("%s", input);
-		pokemon[n] = malloc(sizeof(Pokemon));
+		pokemon[n] = calloc(1, sizeof(Pokemon));
 		ler(pokemon[n], input);
-		// printf("Pokemon lido: ");
-		// imprimir(pokemon[n]);
 		n += 1;
 	}
 
