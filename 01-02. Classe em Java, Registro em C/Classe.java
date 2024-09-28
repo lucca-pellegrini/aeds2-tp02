@@ -50,7 +50,19 @@ class Pokemon implements /* Comparable<Pokemon>, */ Cloneable
     LocalDate captureDate; // Os métodos de Date são deprecados.
 
     public Pokemon()
-    {}
+    {
+        this.id = 0; // Chave padrão.
+        this.generation = 0; // Geração padrão.
+        this.name = "Desconhecido"; // Nome padrão.
+        this.description = "Sem descrição"; // Descrição padrão.
+        this.types = new ArrayList<>(); // Lista de tipos vazia.
+        this.abilities = new ArrayList<>(); // Lista de habilidades vazia.
+        this.weight = 0.0; // Peso padrão.
+        this.height = 0.0; // Altura padrão.
+        this.captureRate = 0; // Taxa de captura padrão.
+        this.isLegendary = false; // Não é lendário por padrão.
+        this.captureDate = LocalDate.MIN; // Data nula (01/01/-9999999…)
+    }
 
     public Pokemon(int id, int generation, String name, String description,
                    List<PokeType> types, List<String> abilities, double weight,
