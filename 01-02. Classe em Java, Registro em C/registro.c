@@ -1,6 +1,7 @@
 #define _POSIX_C_SOURCE 200809L
 
 #include <ctype.h>
+#include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -112,6 +113,11 @@ void ler(Pokemon *restrict p, char *str)
 	// porque o método `abilities_from_string()` invalidará a string `str`
 	// antes dessa posição.
 	char *const post_list = strstr(str, "']\",") + 3;
+	if (!post_list) {
+		int errsv = errno;
+		perror("Tentei criar Pokémon com uma string mal formada");
+		exit(errsv);
+	}
 	char *tok = NULL; // Ponteiro temporário para as substrings (tokens).
 	char *sav = NULL; // Ponteiro auxiliar para o estado de `strtok_r()`.
 	int tok_count = 0; // Contador auxiliar de tokens.
@@ -122,13 +128,11 @@ void ler(Pokemon *restrict p, char *str)
 
 	// Lê o nome.
 	tok = strtok_r(NULL, ",", &sav);
-	p->name = malloc(strlen(tok) + 1);
-	strcpy(p->name, tok);
+	p->name = strdup(tok);
 
 	// Lê a descrição.
 	tok = strtok_r(NULL, ",", &sav);
-	p->description = malloc(strlen(tok) + 1);
-	strcpy(p->description, tok);
+	p->description = strdup(tok);
 
 	// Lê o primeiro tipo.
 	p->type1 = type_from_string(strtok_r(NULL, ",", &sav));
@@ -243,7 +247,13 @@ Pokemon *pokemon_clone(const Pokemon *p)
 // Aloca um Pokémon vazio dinamicamente.
 static inline Pokemon *pokemon_new(void)
 {
-	return calloc(1, sizeof(Pokemon));
+	Pokemon *res = calloc(1, sizeof(Pokemon));
+	if (!res) {
+		int errsv = errno;
+		perror("Impossível alocar memória para Pokémon");
+		exit(errsv);
+	}
+	return res;
 }
 
 // Libera um Pokémon alocado dinamicamente.
@@ -275,6 +285,11 @@ static PokeAbilities abilities_from_string(char *str)
 
 	// Aloca memória para a lista dinâmica.
 	res.list = malloc(res.num * sizeof(char *));
+	if (!res.list) {
+		int errsv = errno;
+		perror("Impossível alocar memória para lista de habilidades");
+		exit(errsv);
+	}
 
 	// Lê cada uma das habilidades.
 	for (int i = 0; i < res.num; ++i) {
@@ -283,6 +298,17 @@ static PokeAbilities abilities_from_string(char *str)
 
 		// Extrai um token da lista.
 		ability = strtok_r(i ? NULL : str, ",]", &sav);
+		if (!ability) {
+			int errsv = errno;
+			for (int j = 0; j < i; ++j) {
+				free(res.list[j]);
+			}
+			free(res.list);
+			res.list = NULL;
+			res.num = 0;
+			perror("Erro ao extrair habilidade da string");
+			exit(errsv);
+		}
 
 		// Remove quaisquer caracteres exceto letras, números e espaços.
 		for (int j = 0; ability[j]; ++j)
@@ -304,8 +330,18 @@ static PokeAbilities abilities_from_string(char *str)
 		// printf("Habilidade %u/%u: {%s}\n", i + 1, res.num, ability);
 
 		// Aloca a memória para a habilidade e a salva no struct.
-		res.list[i] = malloc(token_len + 1);
-		strcpy(res.list[i], ability);
+		res.list[i] = strdup(ability);
+		if (!res.list[i]) {
+			int errsv = errno;
+			for (int j = 0; j < i; ++j) {
+				free(res.list[j]);
+			}
+			free(res.list);
+			res.list = NULL;
+			res.num = 0;
+			perror("Impossível alocar memória para habilidade");
+			exit(errsv);
+		}
 	}
 
 	return res;
@@ -433,6 +469,8 @@ int main(int argc, char **argv)
 {
 	// Stream do arquivo CSV.
 	FILE *csv = fopen((argc > 1) ? argv[1] : DEFAULT_DB, "r");
+	if (!csv)
+		return EXIT_FAILURE;
 	Pokemon *pokemon[NUM_PK] = { NULL }; // Array de Pokémon começa vazio.
 	int n = 0; // Número de Pokémon lidos.
 	char *input = NULL; // Buffer para as linhas de entrada.
