@@ -17,7 +17,7 @@ LDFLAGS := -lm
 JAVA       := java
 JAVAC      := javac
 JAVAFLAGS  :=
-JAVACFLAGS :=
+JAVACFLAGS := -Xlint -Xdiags:verbose -g
 
 # Como mostrar diferenças entre a saída do programa e a saída esperada.
 DIFF := $(shell if command -v colordiff >/dev/null 2>&1; then echo colordiff; else echo diff; fi)
