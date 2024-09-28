@@ -462,12 +462,17 @@ int main(int argc, char **argv)
 {
 	// Stream do arquivo CSV.
 	FILE *csv = fopen((argc > 1) ? argv[1] : DEFAULT_DB, "r");
-	if (!csv)
-		return EXIT_FAILURE;
 	Pokemon *pokemon[NUM_PK] = { NULL }; // Array de Pokémon começa vazio.
 	int n = 0; // Número de Pokémon lidos.
 	char *input = NULL; // Buffer para as linhas de entrada.
 	size_t tam; // Capacidade do buffer de entrada.
+
+	// Verifica se houve erro ao abrir o CSV.
+	if (!csv) {
+		int errsv = errno;
+		perror("Falha ao abrir CSV");
+		return errsv;
+	}
 
 	// Descarta a primeira linha (cabeçalho).
 	while (fgetc(csv) != '\n')
