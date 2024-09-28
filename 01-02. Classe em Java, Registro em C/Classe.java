@@ -5,12 +5,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
-public class Classe {
-    public static void main(String[] args) {
+public class Classe
+{
+    public static void main(String[] args)
+    {
         List<Pokemon> pokemon = new ArrayList<Pokemon>(801);
 
         // Stream do arquivo CSV.
-        try (Scanner csvScanner = new Scanner(new File((args.length > 0) ? args[0] : "/tmp/pokemon.csv"))) {
+        try (Scanner csvScanner = new Scanner(
+                 new File((args.length > 0) ? args[0] : "/tmp/pokemon.csv"))) {
             // Descarta a primeira linha (cabeçalho).
             csvScanner.nextLine();
 
@@ -36,7 +39,8 @@ public class Classe {
     }
 }
 
-class Pokemon implements /* Comparable<Pokemon>, */ Cloneable {
+class Pokemon implements /* Comparable<Pokemon>, */ Cloneable
+{
     int id, generation, captureRate;
     String name, description;
     List<PokeType> types;
@@ -45,14 +49,16 @@ class Pokemon implements /* Comparable<Pokemon>, */ Cloneable {
     boolean isLegendary;
     LocalDate captureDate;
 
-    public Pokemon() {
-    }
+    public Pokemon()
+    {}
 
-    public Pokemon(String str) {
+    public Pokemon(String str)
+    {
         this.ler(str);
     }
 
-    public void ler(String str) throws ArrayIndexOutOfBoundsException {
+    public void ler(String str) throws ArrayIndexOutOfBoundsException
+    {
         // Três seções principais da String de entrada: os elementos antes das
         // habilidades, a lista de habilidades em si, e os elementos após as
         // habilidades.
@@ -96,37 +102,39 @@ class Pokemon implements /* Comparable<Pokemon>, */ Cloneable {
         // Adiciona data de captura.
         String[] membrosData = s2[5].split("/");
         captureDate = LocalDate.of(Integer.parseInt(membrosData[2]), // ano
-                Integer.parseInt(membrosData[1]), // mês
-                Integer.parseInt(membrosData[0])); // dia
+                                   Integer.parseInt(membrosData[1]), // mês
+                                   Integer.parseInt(membrosData[0])); // dia
     }
 
-    public void imprimir() {
+    public void imprimir()
+    {
         System.out.println(this);
     }
 
-    @Override
-    public String toString() {
+    @Override public String toString()
+    {
         String res = new String("[#");
-        res += id + " -> " + name + ": " + description + " - ['" +
-                types.get(0).toString().toLowerCase() +
-                ((types.size() == 2) ? "', '" + types.get(1).toString().toLowerCase() : "") +
-                "'] - ['" + abilities.get(0) + "'";
+        res +=
+            id + " -> " + name + ": " + description + " - ['" +
+            types.get(0).toString().toLowerCase() +
+            ((types.size() == 2) ? "', '" + types.get(1).toString().toLowerCase() : "") +
+            "'] - ['" + abilities.get(0) + "'";
 
         for (int i = 1; i < abilities.size(); ++i)
             res += ", '" + abilities.get(i) + "'";
 
         res += "] - " + weight + "kg - " + height + "m - " + captureRate + "% - " +
-                isLegendary() + " - " + generation + " gen] - " +
-                String.format("%02d/%02d/%04d", captureDate.getDayOfMonth(),
-                        captureDate.getMonthValue(), captureDate.getYear());
+               isLegendary() + " - " + generation + " gen] - " +
+               String.format("%02d/%02d/%04d", captureDate.getDayOfMonth(),
+                             captureDate.getMonthValue(), captureDate.getYear());
 
         return res;
     }
 
-    @Override
-    public Pokemon clone() {
+    @Override public Pokemon clone()
+    {
         try {
-            Pokemon c = (Pokemon) super.clone();
+            Pokemon c = (Pokemon)super.clone();
 
             // Copia as listas, que são referências (Strings também são
             // referências, mas são imutáveis, então não é necessário).
@@ -142,83 +150,103 @@ class Pokemon implements /* Comparable<Pokemon>, */ Cloneable {
 
     // Getters e Setters.
 
-    public int getId() {
+    public int getId()
+    {
         return id;
     }
 
-    public void setId(int id) {
+    public void setId(int id)
+    {
         this.id = id;
     }
 
-    public int getGeneration() {
+    public int getGeneration()
+    {
         return generation;
     }
 
-    public void setGeneration(int generation) {
+    public void setGeneration(int generation)
+    {
         this.generation = generation;
     }
 
-    public int getCaptureRate() {
+    public int getCaptureRate()
+    {
         return captureRate;
     }
 
-    public void setCaptureRate(int captureRate) {
+    public void setCaptureRate(int captureRate)
+    {
         this.captureRate = captureRate;
     }
 
-    public String getName() {
+    public String getName()
+    {
         return name;
     }
 
-    public void setName(String name) {
+    public void setName(String name)
+    {
         this.name = name;
     }
 
-    public String getDescription() {
+    public String getDescription()
+    {
         return description;
     }
 
-    public void setDescription(String description) {
+    public void setDescription(String description)
+    {
         this.description = description;
     }
 
-    public List<PokeType> getTypes() {
+    public List<PokeType> getTypes()
+    {
         return types;
     }
 
-    public void setTypes(List<PokeType> types) {
+    public void setTypes(List<PokeType> types)
+    {
         this.types = types;
     }
 
-    public List<String> getAbilities() {
+    public List<String> getAbilities()
+    {
         return abilities;
     }
 
-    public void setAbilities(List<String> abilities) {
+    public void setAbilities(List<String> abilities)
+    {
         this.abilities = abilities;
     }
 
-    public double getWeight() {
+    public double getWeight()
+    {
         return weight;
     }
 
-    public void setWeight(double weight) {
+    public void setWeight(double weight)
+    {
         this.weight = weight;
     }
 
-    public double getHeight() {
+    public double getHeight()
+    {
         return height;
     }
 
-    public void setHeight(double height) {
+    public void setHeight(double height)
+    {
         this.height = height;
     }
 
-    public boolean isLegendary() {
+    public boolean isLegendary()
+    {
         return isLegendary;
     }
 
-    public void setLegendary(boolean isLegendary) {
+    public void setLegendary(boolean isLegendary)
+    {
         this.isLegendary = isLegendary;
     }
 
