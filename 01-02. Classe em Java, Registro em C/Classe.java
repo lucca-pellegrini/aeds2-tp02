@@ -1,6 +1,7 @@
 import java.awt.print.Printable;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.Scanner;
 import java.util.Vector;
@@ -15,7 +16,7 @@ public class Classe {
     }
 }
 
-class Pokemon implements Comparable<Pokemon>, Cloneable, Printable {
+class Pokemon implements /* Comparable<Pokemon>, */ Cloneable {
     int id, generation, captureRate;
     String name, description;
     ArrayList<PokeType> types;
@@ -37,20 +38,31 @@ class Pokemon implements Comparable<Pokemon>, Cloneable, Printable {
         // habilidades.
         String[] sec = str.split("\"");
 
-        // Adiciona os membros individuais a uma lista.
-        ArrayList<String> members = new ArrayList<>(sec[0].split(","));
-        members.addAll(sec[2].split(","));
+        // Separa as seções em si em elementos individuais.
+        String[] s1 = sec[0].split(",");
+        String[] s2 = sec[2].split(",");
+
+        // Cria um array de tamanho fixo para armazenar todos os membros.
+        String[] members = new String[s1.length + s2.length];
+
+        // Copia os elementos para o array único
+        int i = 0;
+        for (String element : s1)
+            members[i++] = element;
+        for (String element : s2)
+            members[i++] = element;
 
         // Lê os elementos iniciais.
-        id = Integer.parseInt(members.get(0));
-        generation = Integer.parseInt(members.get(1));
-        name = members.get(2);
-        description = members.get(3);
+        id = Integer.parseInt(members[0]);
+        generation = Integer.parseInt(members[1]);
+        name = members[2];
+        description = members[3];
 
         // Adiciona os tipos. Usamos o .valueOf() do enum para facilitar.
-        types = new ArrayList<>(PokeType.valueOf(members.get(4).toUpperCase()));
-        if (!members.get(5).isEmpty()) // Se tiver segundo tipo, adiciona-o.
-            types.add(PokeType.valueOf(members.get(5).toUpperCase()));
+        types = new ArrayList<>();
+        types.add(PokeType.valueOf(members[4].toUpperCase()));
+        if (!members[5].isEmpty()) // Se tiver segundo tipo, adiciona-o.
+            types.add(PokeType.valueOf(members[5].toUpperCase()));
 
         // Remove os caracteres extra da lista de abilidades e as adiciona.
         abilities = new ArrayList<>();
@@ -58,20 +70,20 @@ class Pokemon implements Comparable<Pokemon>, Cloneable, Printable {
             abilities.add(a.replace("[", "").replace("]", "").replace("'", ""));
 
         // Adiciona peso e altura. Se estiverem vazios, devem ser 0.
-        String weightStr = members.get(6);
-        String heightStr = members.get(7);
+        String weightStr = members[6];
+        String heightStr = members[7];
         weight = weightStr.isEmpty() ? 0 : Double.parseDouble(weightStr);
         height = heightStr.isEmpty() ? 0 : Double.parseDouble(heightStr);
 
         // Lê o determinante da probabilidade de captura e se é lendário ou não.
-        captureRate = Integer.parseInt(members.get(8));
-        isLegendary = (Integer.parseInt(members.get(9)) == 1);
+        captureRate = Integer.parseInt(members[8]);
+        isLegendary = (Integer.parseInt(members[9]) == 1);
 
         // Adiciona data de captura.
-        String[] membrosData = members.get(10).split("/");
-        captureDate = LocalDate.of(Integer.parseInt(membrosData[0]),
-                Integer.parseInt(membrosData[1]),
-                Integer.parseInt(membrosData[2]));
+        String[] membrosData = members[10].split("/");
+        captureDate = LocalDate.of(Integer.parseInt(membrosData[2]), // ano
+                Integer.parseInt(membrosData[1]), // mês
+                Integer.parseInt(membrosData[0])); // dia
     }
 
     public void imprimir() {
@@ -97,12 +109,12 @@ class Pokemon implements Comparable<Pokemon>, Cloneable, Printable {
 
     @Override
     public Pokemon clone() {
-        Pokemon c = super.clone();
+        Pokemon c = (Pokemon) super.clone();
 
         // Copia as listas, que são referências (Strings também são
         // referências, mas são imutáveis, então não é necessário).
         c.types = new ArrayList<>(this.types);
-        c.abilites = new ArrayList<>(this.abilites);
+        c.abilities = new ArrayList<>(this.abilities);
 
         return c;
     }
