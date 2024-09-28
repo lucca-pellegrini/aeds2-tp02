@@ -47,10 +47,28 @@ class Pokemon implements /* Comparable<Pokemon>, */ Cloneable
     List<String> abilities;
     double weight, height;
     boolean isLegendary;
-    LocalDate captureDate;
+    LocalDate captureDate; // Os métodos de Date são deprecados.
 
     public Pokemon()
     {}
+
+    public Pokemon(int id, int generation, String name, String description,
+                   List<PokeType> types, List<String> abilities, double weight,
+                   double height, int captureRate, boolean isLegendary,
+                   LocalDate captureDate)
+    {
+        this.id = id;
+        this.generation = generation;
+        this.name = name;
+        this.description = description;
+        this.types = types;
+        this.abilities = abilities;
+        this.weight = weight;
+        this.height = height;
+        this.captureRate = captureRate;
+        this.isLegendary = isLegendary;
+        this.captureDate = captureDate;
+    }
 
     public Pokemon(String str)
     {
