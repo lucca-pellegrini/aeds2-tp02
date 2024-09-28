@@ -1,7 +1,7 @@
 # Trabalho Prático 2 (Em Progresso)
 
-Aqui se encontrarão o segundo trabalho prático de Algoritmos e Estruturas de
-Dados 2 (1610100) de 2024/2.
+Aqui se encontrará o segundo trabalho prático de Algoritmos e Estruturas de
+Dados 2 (1610100) de 2024/2 (quando eu terminar).
 
 ## Resultados
 
