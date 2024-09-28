@@ -89,6 +89,16 @@ typedef struct {
 int main(int argc, char **argv);
 void ler(Pokemon *restrict p, char *str);
 void imprimir(Pokemon *restrict const p);
+Pokemon *pokemon_from_str(char *str);
+Pokemon *pokemon_from_params(uint16_t id, uint8_t generation, const char *name,
+			     const char *description, PokeType type1,
+			     PokeType type2, const PokeAbilities *abilities,
+			     double weight_kg, double height_m,
+			     uint16_t capture_rate, bool is_legendary,
+			     Date capture_date);
+Pokemon *pokemon_clone(const Pokemon *p);
+static inline Pokemon *pokemon_new(void);
+void pokemon_free(Pokemon *restrict p);
 static PokeAbilities abilities_from_string(char *str);
 static PokeType type_from_string(const char *str);
 static const char *type_to_string(PokeType type);
@@ -179,6 +189,74 @@ void imprimir(Pokemon *restrict const p)
 	       p->weight, p->height, p->capture_rate,
 	       p->is_legendary ? "true" : "false", p->generation,
 	       p->capture_date.d, p->capture_date.m, p->capture_date.y);
+}
+
+// Aloca um Pokémon a partir de uma string.
+Pokemon *pokemon_from_str(char *str)
+{
+	Pokemon *res = pokemon_new();
+	ler(res, str);
+	return res;
+}
+
+// Aloca um Pokémon a partir de parâmetros.
+Pokemon *pokemon_from_params(uint16_t id, uint8_t generation, const char *name,
+			     const char *description, PokeType type1,
+			     PokeType type2, const PokeAbilities *abilities,
+			     double weight_kg, double height_m,
+			     uint16_t capture_rate, bool is_legendary,
+			     Date capture_date)
+{
+	Pokemon *res = pokemon_new();
+
+	// Precisamos criar uma cópia profunda da lista de habilidades.
+	PokeAbilities ablist_clone = { .num = abilities->num };
+	ablist_clone.list = malloc(ablist_clone.num * sizeof(char *));
+	for (int i = 0; i < ablist_clone.num; ++i)
+		ablist_clone.list[i] = strdup(abilities->list[i]);
+
+	*res = (Pokemon){ .id = id,
+			  .generation = generation,
+			  .name = strdup(name),
+			  .description = strdup(description),
+			  .type1 = type1,
+			  .type2 = type2,
+			  .abilities = ablist_clone,
+			  .weight = weight_kg,
+			  .height = height_m,
+			  .capture_rate = capture_rate,
+			  .is_legendary = is_legendary,
+			  .capture_date = capture_date };
+	return res;
+}
+
+// Duplica um Pokemón.
+Pokemon *pokemon_clone(const Pokemon *p)
+{
+	return pokemon_from_params(p->id, p->generation, p->name,
+				   p->description, p->type1, p->type2,
+				   &p->abilities, p->weight, p->height,
+				   p->capture_rate, p->is_legendary,
+				   p->capture_date);
+}
+
+// Aloca um Pokémon vazio dinamicamente.
+static inline Pokemon *pokemon_new(void)
+{
+	return calloc(1, sizeof(Pokemon));
+}
+
+// Libera um Pokémon alocado dinamicamente.
+void pokemon_free(Pokemon *restrict p)
+{
+	if (p != NULL) {
+		free(p->name);
+		free(p->description);
+		for (int i = 0; i < p->abilities.num; ++i)
+			free(p->abilities.list[i]);
+		free(p->abilities.list);
+		free(p);
+	}
 }
 
 // Cria uma lista dinâmica de habilidades a partir de uma representação textual.
@@ -365,11 +443,8 @@ int main(int argc, char **argv)
 		;
 
 	// Lê os Pokémon do CSV.
-	while (getline(&input, &tam, csv) != -1) {
-		pokemon[n] = calloc(1, sizeof(Pokemon));
-		ler(pokemon[n], input);
-		n += 1;
-	}
+	while (getline(&input, &tam, csv) != -1)
+		pokemon[n++] = pokemon_from_str(input);
 
 	// Lê as buscas da entrada padrão até encontrar "FIM".
 	while (getline(&input, &tam, stdin) != -1) {
@@ -382,6 +457,10 @@ int main(int argc, char **argv)
 		}
 	}
 
+	// Libera recursos.
+	for (int i = 0; i < n; ++i)
+		pokemon_free(pokemon[i]);
 	free(input);
+
 	return EXIT_SUCCESS;
 }
