@@ -7,13 +7,16 @@ import java.util.Scanner;
 
 public class Classe
 {
+    // Arquivo padrão contendo o CSV, se não receber por parâmetro.
+    private static final String DEFAULT_DB = "/tmp/pokemon.csv";
+
     public static void main(String[] args)
     {
         List<Pokemon> pokemon = new ArrayList<Pokemon>(801);
 
         // Stream do arquivo CSV.
-        try (Scanner csvScanner = new Scanner(
-                 new File((args.length > 0) ? args[0] : "/tmp/pokemon.csv"))) {
+        try (Scanner csvScanner =
+                 new Scanner(new File((args.length > 0) ? args[0] : DEFAULT_DB))) {
             // Descarta a primeira linha (cabeçalho).
             csvScanner.nextLine();
 
