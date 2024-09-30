@@ -90,7 +90,6 @@ typedef struct {
 // Funções para cumprimento da questão.
 int main(int argc, char **argv);
 static inline bool pesquisa_binaria(Pokemon **vec, size_t n, char *target);
-static void ordena(Pokemon **vec, size_t n);
 static int compara(Pokemon *ptr, char *nome);
 
 // Funções para a implementação do objeto Pokémon.
@@ -475,7 +474,7 @@ int main(int argc, char **argv)
 	Pokemon *pokemon[NUM_PK] = { NULL }; // Array de Pokémon.
 	Pokemon *selecionados[NUM_PK] = { NULL }; // Pokémon selecionados.
 	int num_lidos = 0; // Número de Pokémon lidos.
-	int num_selecionados = 0; // Número de Pokémon que buscaremos
+	int num_select = 0; // Número de Pokémon que buscaremos
 	char *input = NULL; // Buffer para as linhas de entrada.
 	size_t tam; // Capacidade do buffer de entrada.
 	struct timespec tempo_inicial, tempo_final;
@@ -496,21 +495,24 @@ int main(int argc, char **argv)
 		pokemon[num_lidos++] = pokemon_from_str(input);
 	fclose(csv); // Fecha o arquivo ao terminar.
 
-	// Lê os índices da entrada padrão e adiciona aos `selecionados`.
-	// TODO: Por quê não simplesmente fazer a ordenação por inserção aqui?
-	while (getline(&input, &tam, stdin) != -1 && strcmp(input, "FIM\n"))
-		selecionados[num_selecionados++] = pokemon[atoi(input) - 1];
-
-	// Ordena o vetor para possibilitar a pesquisa binária.
-	ordena(selecionados, num_selecionados);
+	// Lê os índices da entrada padrão e adiciona aos `selecionados` de
+	// forma ordenada usando o método de inserção.
+	while (getline(&input, &tam, stdin) != -1 && strcmp(input, "FIM\n")) {
+		Pokemon *tmp = pokemon[atoi(input) - 1];
+		int j;
+		for (j = num_select - 1;
+		     j >= 0 && compara(selecionados[j], tmp->name) > 0; --j)
+			selecionados[j + 1] = selecionados[j];
+		selecionados[j + 1] = tmp;
+		num_select++;
+	}
 
 	// Executa a pesquisa binária de cada nome na input.
 	clock_gettime(CLOCK_MONOTONIC, &tempo_inicial); // Mede tempo inicial.
 	while (getline(&input, &tam, stdin) != -1 && strcmp(input, "FIM\n")) {
 		input[strcspn(input, "\n")] = '\0'; // Remove newline.
-		puts(pesquisa_binaria(selecionados, num_selecionados, input) ?
-			     "SIM" :
-			     "NAO");
+		puts(pesquisa_binaria(selecionados, num_select, input) ? "SIM" :
+									 "NAO");
 	}
 	clock_gettime(CLOCK_MONOTONIC, &tempo_final); // Mede tempo final.
 
@@ -560,17 +562,6 @@ static inline bool pesquisa_binaria(Pokemon **vec, size_t n, char *target)
 	}
 
 	return res;
-}
-
-static inline void ordena(Pokemon **vec, size_t n)
-{
-	for (size_t i = 1; i < n; ++i) {
-		Pokemon *tmp = vec[i];
-		int j;
-		for (j = i - 1; j >= 0 && compara(vec[j], tmp->name) > 0; --j)
-			vec[j + 1] = vec[j];
-		vec[j + 1] = tmp;
-	}
 }
 
 static inline int compara(Pokemon *ptr, char *nome)
