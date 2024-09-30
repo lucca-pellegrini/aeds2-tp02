@@ -44,13 +44,13 @@ public class Classe
 
 class Pokemon implements /* Comparable<Pokemon>, */ Cloneable
 {
-    int id, generation, captureRate;
-    String name, description;
-    List<PokeType> types;
-    List<String> abilities;
-    double weight, height;
-    boolean isLegendary;
-    LocalDate captureDate; // Os métodos de Date são deprecados.
+    private int id, generation, captureRate;
+    private String name, description;
+    private List<PokeType> types;
+    private List<String> abilities;
+    private double weight, height;
+    private boolean isLegendary;
+    private LocalDate captureDate; // Os métodos de Date são deprecados.
 
     public Pokemon()
     {
