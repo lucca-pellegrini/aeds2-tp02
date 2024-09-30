@@ -504,7 +504,6 @@ int main(int argc, char **argv)
 	ordena(selecionados, num_selecionados);
 
 	// Executa a pesquisa binária de cada nome na input.
-	num_comparacoes = 0; // Reseta número de comparações.
 	clock_gettime(CLOCK_MONOTONIC, &tempo_inicial); // Mede tempo inicial.
 	while (getline(&input, &tam, stdin) != -1 && strcmp(input, "FIM\n")) {
 		input[strcspn(input, "\n")] = '\0'; // Remove newline.
@@ -547,6 +546,7 @@ static inline bool pesquisa_binaria(Pokemon **vec, size_t n, char *target)
 	while (esq <= dir) {
 		const size_t mid = (dir + esq) / 2;
 		const int cmp = compara(vec[mid], target);
+		++num_comparacoes;
 
 		if (cmp < 0) {
 			esq = mid + 1;
@@ -574,6 +574,5 @@ static inline void ordena(Pokemon **vec, size_t n)
 
 static inline int compara(Pokemon *ptr, char *nome)
 {
-	++num_comparacoes;
 	return strcmp(ptr->name, nome);
 }
