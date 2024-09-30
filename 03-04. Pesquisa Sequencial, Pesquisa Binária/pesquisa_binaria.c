@@ -459,19 +459,6 @@ static const char *type_to_string(PokeType type)
 
 /// Programa principal. ///////////////////////////////////////////////////////
 
-// Macro para depuração.
-#ifdef DEBUG // Se não estivermos no Verde...
-#define debug(expr)     \
-	do {            \
-		(expr); \
-                        \
-	} while (0) // Executa a expressão.
-#else // Caso contrário...
-#define debug(expr) \
-	do {        \
-	} while (0) // Faz nada.
-#endif
-
 #define NUM_PK 801 // Número máximo de Pokémon no CSV.
 
 // Contém as estatísticas que o enunciado pede.
@@ -513,18 +500,8 @@ int main(int argc, char **argv)
 	while (getline(&input, &tam, stdin) != -1 && strcmp(input, "FIM\n"))
 		selecionados[num_selecionados++] = pokemon[atoi(input) - 1];
 
-	debug(fputs("Pokémon selecionados:\n", stdout));
-	for (int i = 0; i < num_selecionados; ++i)
-		debug(imprimir(selecionados[i]));
-
 	// Ordena o vetor para possibilitar a pesquisa binária.
 	ordena(selecionados, num_selecionados);
-
-	debug(fprintf(stdout, "\nOrdenados após %ju comparações:\n",
-		      num_comparacoes));
-	for (int i = 0; i < num_selecionados; ++i)
-		debug(imprimir(selecionados[i]));
-	debug(fputs("\nIniciando leitura dos termos de pesquisa:\n", stdout));
 
 	// Executa a pesquisa binária de cada nome na input.
 	num_comparacoes = 0; // Reseta número de comparações.
@@ -537,15 +514,11 @@ int main(int argc, char **argv)
 	}
 	clock_gettime(CLOCK_MONOTONIC, &tempo_final); // Mede tempo final.
 
-	debug(fputs("Buscas realizadas!\n", stderr));
-
 	// Computa tempo de execução.
 	tempo_execucao = (struct timespec){
 		.tv_sec = tempo_final.tv_sec - tempo_inicial.tv_sec,
 		.tv_nsec = tempo_final.tv_nsec - tempo_inicial.tv_nsec
 	};
-
-	debug(fputs("Tempo de execução computado.\n", stderr));
 
 	// Salva os resultados no log.
 	if (!(log = fopen(LOG, "w"))) {
@@ -571,16 +544,9 @@ static inline bool pesquisa_binaria(Pokemon **vec, size_t n, char *target)
 	bool res = false;
 	size_t esq = 0, dir = n - 1;
 
-	debug(fprintf(stderr, "Iniciando pesquisa binária para: {%s}\n",
-		      target));
-
 	while (esq <= dir) {
 		const size_t mid = (dir + esq) / 2;
 		const int cmp = compara(vec[mid], target);
-
-		debug(fprintf(stderr, "esq: %zu, dir: %zu, mid: %zu, cmp: %d\n",
-			      esq, dir, mid, cmp));
-		debug(fprintf(stderr, "Comparando com: %s\n", vec[mid]->name));
 
 		if (cmp < 0) {
 			esq = mid + 1;
