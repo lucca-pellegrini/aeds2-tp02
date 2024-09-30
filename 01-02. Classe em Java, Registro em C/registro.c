@@ -475,7 +475,7 @@ int main(int argc, char **argv)
 		;
 
 	// Lê os Pokémon do CSV.
-	while (getline(&input, &tam, csv) != -1)
+	while (n < NUM_PK && getline(&input, &tam, csv) != -1)
 		pokemon[n++] = pokemon_from_str(input);
 	fclose(csv); // Fecha o arquivo ao terminar.
 
