@@ -1,4 +1,6 @@
 */registro
+*/pesquisa_binaria
+
 
 compile_commands.json
 
@@ -7,3 +9,4 @@ compile_commands.json
 *.class
 pubs.*
 teste.*
+*.txt
