@@ -71,12 +71,11 @@ typedef struct {
 	Date capture_date; // Data de captura.
 
 	// Tipos de 16 bits.
+	PokeType type[2]; // Tipos do Pokémon.
 	uint16_t id; // Chave: inteiro não-negativo de 16 bits.
 	uint16_t capture_rate; // Determinante da probabilidade de captura.
 
 	// Tipos de 8 bits.
-	PokeType type1; // Primeiro tipo.
-	PokeType type2; // Segundo tipo.
 	uint8_t generation; // Geração: inteiro não-negativo de 8 bits.
 	bool is_legendary; // Se é ou não um Pokémon lendário.
 
@@ -92,11 +91,10 @@ void ler(Pokemon *restrict p, char *str);
 void imprimir(Pokemon *restrict const p);
 Pokemon *pokemon_from_str(char *str);
 Pokemon *pokemon_from_params(uint16_t id, uint8_t generation, const char *name,
-			     const char *description, PokeType type1,
-			     PokeType type2, const PokeAbilities *abilities,
-			     double weight_kg, double height_m,
-			     uint16_t capture_rate, bool is_legendary,
-			     Date capture_date);
+			     const char *description, const PokeType type[2],
+			     const PokeAbilities *abilities, double weight_kg,
+			     double height_m, uint16_t capture_rate,
+			     bool is_legendary, Date capture_date);
 Pokemon *pokemon_clone(const Pokemon *p);
 static inline Pokemon *pokemon_new(void);
 void pokemon_free(Pokemon *restrict p);
@@ -137,11 +135,11 @@ void ler(Pokemon *restrict p, char *str)
 	p->description = strdup(tok);
 
 	// Lê o primeiro tipo.
-	p->type1 = type_from_string(strtok_r(NULL, ",", &sav));
+	p->type[0] = type_from_string(strtok_r(NULL, ",", &sav));
 
 	// Lẽ o segundo tipo, se existir.
 	tok = strtok_r(NULL, "[,", &sav);
-	p->type2 = (*tok == '"') ? NO_TYPE : type_from_string(tok);
+	p->type[1] = (*tok == '"') ? NO_TYPE : type_from_string(tok);
 
 	// Lê a lista de habilidades.
 	p->abilities = abilities_from_string(strtok_r(NULL, "]", &sav));
@@ -179,10 +177,10 @@ void ler(Pokemon *restrict p, char *str)
 void imprimir(Pokemon *restrict const p)
 {
 	printf("[#%d -> %s: %s - ['%s'", p->id, p->name, p->description,
-	       type_to_string(p->type1));
+	       type_to_string(p->type[0]));
 
-	if (p->type2 != NO_TYPE)
-		printf(", '%s'", type_to_string(p->type2));
+	if (p->type[1] != NO_TYPE)
+		printf(", '%s'", type_to_string(p->type[1]));
 
 	printf("] - ['%s'", p->abilities.list[0]);
 	for (int i = 1; i < p->abilities.num; ++i)
@@ -204,11 +202,10 @@ Pokemon *pokemon_from_str(char *str)
 
 // Aloca um Pokémon a partir de parâmetros.
 Pokemon *pokemon_from_params(uint16_t id, uint8_t generation, const char *name,
-			     const char *description, PokeType type1,
-			     PokeType type2, const PokeAbilities *abilities,
-			     double weight_kg, double height_m,
-			     uint16_t capture_rate, bool is_legendary,
-			     Date capture_date)
+			     const char *description, const PokeType type[2],
+			     const PokeAbilities *abilities, double weight_kg,
+			     double height_m, uint16_t capture_rate,
+			     bool is_legendary, Date capture_date)
 {
 	Pokemon *res = pokemon_new();
 
@@ -222,8 +219,8 @@ Pokemon *pokemon_from_params(uint16_t id, uint8_t generation, const char *name,
 			  .generation = generation,
 			  .name = strdup(name),
 			  .description = strdup(description),
-			  .type1 = type1,
-			  .type2 = type2,
+			  .type[0] = type[0],
+			  .type[1] = type[1],
 			  .abilities = ablist_clone,
 			  .weight = weight_kg,
 			  .height = height_m,
@@ -237,10 +234,9 @@ Pokemon *pokemon_from_params(uint16_t id, uint8_t generation, const char *name,
 Pokemon *pokemon_clone(const Pokemon *p)
 {
 	return pokemon_from_params(p->id, p->generation, p->name,
-				   p->description, p->type1, p->type2,
-				   &p->abilities, p->weight, p->height,
-				   p->capture_rate, p->is_legendary,
-				   p->capture_date);
+				   p->description, p->type, &p->abilities,
+				   p->weight, p->height, p->capture_rate,
+				   p->is_legendary, p->capture_date);
 }
 
 // Aloca um Pokémon vazio dinamicamente.
