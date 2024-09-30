@@ -476,7 +476,7 @@ int main(int argc, char **argv)
 	int num_lidos = 0; // Número de Pokémon lidos.
 	int num_select = 0; // Número de Pokémon que buscaremos
 	char *input = NULL; // Buffer para as linhas de entrada.
-	size_t tam; // Capacidade do buffer de entrada.
+	size_t tam_input; // Capacidade do buffer de entrada.
 	struct timespec tempo_inicial, tempo_final;
 
 	// Verifica se houve erro ao abrir o CSV.
@@ -491,13 +491,14 @@ int main(int argc, char **argv)
 		;
 
 	// Lê os Pokémon do CSV.
-	while (num_lidos < NUM_PK && getline(&input, &tam, csv) != -1)
+	while (num_lidos < NUM_PK && getline(&input, &tam_input, csv) != -1)
 		pokemon[num_lidos++] = pokemon_from_str(input);
 	fclose(csv); // Fecha o arquivo ao terminar.
 
 	// Lê os índices da entrada padrão e adiciona aos `selecionados` de
-	// forma ordenada usando o método de inserção.
-	while (getline(&input, &tam, stdin) != -1 && strcmp(input, "FIM\n")) {
+	// forma ordenada, usando o método de inserção.
+	while (getline(&input, &tam_input, stdin) != -1 &&
+	       strcmp(input, "FIM\n")) {
 		Pokemon *tmp = pokemon[atoi(input) - 1];
 		int j;
 		for (j = num_select - 1;
@@ -509,21 +510,22 @@ int main(int argc, char **argv)
 
 	// Executa a pesquisa binária de cada nome na input.
 	clock_gettime(CLOCK_MONOTONIC, &tempo_inicial); // Mede tempo inicial.
-	while (getline(&input, &tam, stdin) != -1 && strcmp(input, "FIM\n")) {
+	while (getline(&input, &tam_input, stdin) != -1 &&
+	       strcmp(input, "FIM\n")) {
 		input[strcspn(input, "\n")] = '\0'; // Remove newline.
 		puts(pesquisa_binaria(selecionados, num_select, input) ? "SIM" :
 									 "NAO");
 	}
 	clock_gettime(CLOCK_MONOTONIC, &tempo_final); // Mede tempo final.
 
-	// Computa tempo de execução.
+	// Computa tempo de execução em segundos + nanossegundos.
 	tempo_execucao = (struct timespec){
 		.tv_sec = tempo_final.tv_sec - tempo_inicial.tv_sec,
 		.tv_nsec = tempo_final.tv_nsec - tempo_inicial.tv_nsec
 	};
 
 	// Salva os resultados no log.
-	if (!(log = fopen(LOG, "w"))) {
+	if (!(log = fopen(LOG, "w"))) { // Verifica erro ao abrir arquivo.
 		int errsv = errno;
 		perror("Falha ao abrir " LOG);
 		return errsv;
@@ -541,6 +543,7 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS;
 }
 
+// Faz pesquisa binária dos Pokemon* em `vec` até achar um com nome `target`.
 static inline bool pesquisa_binaria(Pokemon **vec, size_t n, char *target)
 {
 	bool res = false;
@@ -564,6 +567,7 @@ static inline bool pesquisa_binaria(Pokemon **vec, size_t n, char *target)
 	return res;
 }
 
+// Método auxiliar de comparação: compara um Pokemon* a uma string pelo nome.
 static inline int compara(Pokemon *ptr, char *nome)
 {
 	return strcmp(ptr->name, nome);
