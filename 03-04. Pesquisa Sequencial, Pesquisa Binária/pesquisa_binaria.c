@@ -504,9 +504,20 @@ int main(int argc, char **argv)
 		for (j = num_select - 1;
 		     j >= 0 && compara(selecionados[j], tmp->name) > 0; --j)
 			selecionados[j + 1] = selecionados[j];
-		selecionados[j + 1] = tmp;
+
+		// O clone não é necessário, mas permite que liberemos os
+		// elementos apontados pelas referências no vetor `pokemon`,
+		// mantendo apeans os em `selecionados`, economizando memória.
+		selecionados[j + 1] = pokemon_clone(tmp);
 		num_select++;
 	}
+
+	// Com os Pokémon selecionados, podemos liberar a memória alocada para
+	// o CSV inteiro.
+	for (int i = 0; i < num_lidos; ++i)
+		pokemon_free(pokemon[i]);
+	memset(pokemon, 0, num_lidos * sizeof(Pokemon *));
+	num_lidos = 0;
 
 	// Executa a pesquisa binária de cada nome na input.
 	clock_gettime(CLOCK_MONOTONIC, &tempo_inicial); // Mede tempo inicial.
@@ -517,6 +528,13 @@ int main(int argc, char **argv)
 									 "NAO");
 	}
 	clock_gettime(CLOCK_MONOTONIC, &tempo_final); // Mede tempo final.
+
+	// Libera recursos restantes.
+	for (int i = 0; i < num_select; ++i)
+		pokemon_free(selecionados[i]);
+	memset(selecionados, 0, num_select * sizeof(Pokemon *));
+	num_select = 0;
+	free(input);
 
 	// Computa tempo de execução em segundos + nanossegundos.
 	tempo_execucao = (struct timespec){
@@ -534,11 +552,6 @@ int main(int argc, char **argv)
 		tempo_execucao.tv_sec * 1000000000 + tempo_execucao.tv_nsec,
 		num_comparacoes);
 	fclose(log);
-
-	// Libera recursos alocados.
-	for (int i = 0; i < num_lidos; ++i)
-		pokemon_free(pokemon[i]);
-	free(input);
 
 	return EXIT_SUCCESS;
 }
