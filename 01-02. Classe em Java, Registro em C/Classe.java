@@ -38,6 +38,7 @@ public class Classe
 
         } catch (Exception e) {
             e.printStackTrace();
+            return;
         }
     }
 }
