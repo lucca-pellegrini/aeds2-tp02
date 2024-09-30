@@ -497,6 +497,7 @@ int main(int argc, char **argv)
 	fclose(csv); // Fecha o arquivo ao terminar.
 
 	// Lê os índices da entrada padrão e adiciona aos `selecionados`.
+	// TODO: Por quê não simplesmente fazer a ordenação por inserção aqui?
 	while (getline(&input, &tam, stdin) != -1 && strcmp(input, "FIM\n"))
 		selecionados[num_selecionados++] = pokemon[atoi(input) - 1];
 
