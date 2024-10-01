@@ -209,7 +209,9 @@ class Pokemon implements Comparable<Pokemon>, Cloneable
     @Override public int compareTo(Pokemon outro)
     {
         ++Pokemon.numComparacoes;
-        return this.captureDate.compareTo(outro.captureDate);
+        int res = this.captureDate.compareTo(outro.captureDate);
+        res = res != 0 ? res : this.name.compareTo(outro.name);
+        return res;
     }
 
     @Override public Pokemon clone()
