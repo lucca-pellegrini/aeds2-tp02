@@ -557,7 +557,7 @@ int main(int argc, char **argv)
 
 static void quicksort(Pokemon **vec, size_t esq, size_t dir)
 {
-	if (esq < dir) {
+	if (esq < dir && esq >= 0) {
 		size_t i = esq, j = dir;
 		Pokemon *pivo = vec[(esq + dir) / 2];
 
