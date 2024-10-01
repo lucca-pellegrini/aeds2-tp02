@@ -42,4 +42,4 @@ testjava: $(JAVABIN)
 
 # Como excluir artefatos de compilação.
 clean:
-	$(RM) $(BIN) $(TEST)
+	$(RM) $(CBIN) $(TEST) *.class *.txt
