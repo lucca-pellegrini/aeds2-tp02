@@ -14,7 +14,6 @@ public class Insercao
     // Contém as estatísticas que o enunciado pede.
     private static final String LOG = "matrícula_insercao.txt";
     private static final long MATRICULA = 842986;
-    private static int numComparacoes = 0;
     private static long tempoExecucao;
 
     public static void main(String[] args)
@@ -60,7 +59,8 @@ public class Insercao
 
         // Salva o log.
         try (PrintStream log = new PrintStream(LOG)) {
-            log.println(MATRICULA + "\t" + tempoExecucao + "\t" + numComparacoes);
+            log.println(MATRICULA + "\t" + tempoExecucao + "\t" +
+                        Pokemon.getNumComparacoes());
         } catch (Exception e) {
             e.printStackTrace();
             return;
@@ -74,7 +74,7 @@ public class Insercao
             int j;
 
             for (j = i - 1; j >= 0 && temp.compareTo(vec.get(j)) < 0; --j)
-                vec.set(j + 1,  vec.get(j));
+                vec.set(j + 1, vec.get(j));
 
             vec.set(j + 1, temp);
         }
@@ -90,6 +90,8 @@ class Pokemon implements Comparable<Pokemon>, Cloneable
     private double weight, height;
     private boolean isLegendary;
     private LocalDate captureDate; // Os métodos de Date são deprecados.
+
+    private static int numComparacoes = 0; // Para contar comparações.
 
     public Pokemon()
     {
@@ -206,6 +208,7 @@ class Pokemon implements Comparable<Pokemon>, Cloneable
     // Ordena Pokémon por nome.
     @Override public int compareTo(Pokemon outro)
     {
+        ++Pokemon.numComparacoes;
         return this.captureDate.compareTo(outro.captureDate);
     }
 
@@ -336,6 +339,16 @@ class Pokemon implements Comparable<Pokemon>, Cloneable
     public void setCaptureDate(LocalDate captureDate)
     {
         this.captureDate = captureDate;
+    }
+
+    public static int getNumComparacoes()
+    {
+        return numComparacoes;
+    }
+
+    public static void setNumComparacoes(int numComparacoes)
+    {
+        Pokemon.numComparacoes = numComparacoes;
     }
 
     // Tipos de Pokémon.
