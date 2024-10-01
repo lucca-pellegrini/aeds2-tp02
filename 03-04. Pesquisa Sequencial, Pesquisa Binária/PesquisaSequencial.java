@@ -328,6 +328,16 @@ class Pokemon implements /* Comparable<Pokemon>, */ Cloneable
         this.isLegendary = isLegendary;
     }
 
+    public LocalDate getCaptureDate()
+    {
+        return captureDate;
+    }
+
+    public void setCaptureDate(LocalDate captureDate)
+    {
+        this.captureDate = captureDate;
+    }
+
     // Tipos de Pokémon.
     static enum PokeType {
         BUG,
