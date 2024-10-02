@@ -575,7 +575,7 @@ static void insercao_parcial(Pokemon **vec, size_t n, size_t k)
 		Pokemon *temp = vec[i];
 		size_t j;
 
-		for (j = i - 1;
+		for (j = i - 1; // Temos que estar atentos ao underflow de `j`.
 		     j >= 0 && j != SIZE_MAX && compara(vec[j], temp) < 0; --j)
 			vec[j + 1] = vec[j];
 
