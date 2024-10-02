@@ -96,6 +96,9 @@ typedef struct {
 // Funções para cumprimento da questão.
 int main(int argc, char **argv);
 static void quicksort(Pokemon **vec, size_t n);
+static void quicksort_aux(Pokemon **vec, size_t esq, size_t dir);
+static inline size_t particiona(Pokemon **vec, size_t esq, size_t dir);
+static inline size_t pivo(Pokemon **vec, size_t esq, size_t mid, size_t dir);
 static inline void swap(Pokemon **vec, size_t a, size_t b);
 
 // Funções para a implementação do objeto Pokémon.
@@ -555,26 +558,21 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS;
 }
 
-// Função auxiliar para achar o pivô usando média de três.
-static inline size_t pivo(Pokemon **vec, size_t esq, size_t mid, size_t dir)
+// Ponto de entrada do quicksort para evitar passar `esq` e `dir` em main.
+static void quicksort(Pokemon **vec, size_t n)
 {
-	size_t res;
-	if (compara(vec[esq], vec[mid]) < 0) {
-		if (compara(vec[mid], vec[dir]) < 0)
-			res = mid;
-		else if (compara(vec[esq], vec[dir]) < 0)
-			res = dir;
-		else
-			res = esq;
-	} else {
-		if (compara(vec[esq], vec[dir]) < 0)
-			res = esq;
-		else if (compara(vec[mid], vec[dir]) < 0)
-			res = dir;
-		else
-			res = mid;
+	if (n > 1)
+		quicksort_aux(vec, 0, n - 1);
+}
+
+// Função auxiliar que faz o quicksort recursivamente.
+static void quicksort_aux(Pokemon **vec, size_t esq, size_t dir)
+{
+	if (esq < dir) {
+		size_t pivo_idx = particiona(vec, esq, dir);
+		quicksort_aux(vec, esq, pivo_idx > 0 ? pivo_idx - 1 : 0);
+		quicksort_aux(vec, pivo_idx + 1, dir);
 	}
-	return res;
 }
 
 // Particiona o vetor.
@@ -597,21 +595,26 @@ static inline size_t particiona(Pokemon **vec, size_t esq, size_t dir)
 	return i;
 }
 
-// Função auxiliar que faz o quicksort recursivamente.
-static void quicksort_aux(Pokemon **vec, size_t esq, size_t dir)
+// Função auxiliar para achar o pivô usando média de três.
+static inline size_t pivo(Pokemon **vec, size_t esq, size_t mid, size_t dir)
 {
-	if (esq < dir) {
-		size_t pivo_idx = particiona(vec, esq, dir);
-		quicksort_aux(vec, esq, pivo_idx > 0 ? pivo_idx - 1 : 0);
-		quicksort_aux(vec, pivo_idx + 1, dir);
+	size_t res;
+	if (compara(vec[esq], vec[mid]) < 0) {
+		if (compara(vec[mid], vec[dir]) < 0)
+			res = mid;
+		else if (compara(vec[esq], vec[dir]) < 0)
+			res = dir;
+		else
+			res = esq;
+	} else {
+		if (compara(vec[esq], vec[dir]) < 0)
+			res = esq;
+		else if (compara(vec[mid], vec[dir]) < 0)
+			res = dir;
+		else
+			res = mid;
 	}
-}
-
-// Ponto de entrada do quicksort para evitar passar `esq` e `dir` em main.
-static void quicksort(Pokemon **vec, size_t n)
-{
-	if (n > 1)
-		quicksort_aux(vec, 0, n - 1);
+	return res;
 }
 
 static inline void swap(Pokemon **vec, size_t a, size_t b)
