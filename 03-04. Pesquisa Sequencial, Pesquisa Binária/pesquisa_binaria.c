@@ -461,7 +461,7 @@ static const char *type_to_string(PokeType type)
 #define NUM_PK 801 // Número máximo de Pokémon no CSV.
 
 // Contém as estatísticas que o enunciado pede.
-#define LOG "matrícula_binária.txt"
+#define LOG "842986_binária.txt"
 #define MATRICULA 842986L
 static size_t num_comparacoes = 0;
 static struct timespec tempo_execucao = { 0 };

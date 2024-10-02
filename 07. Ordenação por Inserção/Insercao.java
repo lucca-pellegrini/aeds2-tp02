@@ -12,7 +12,7 @@ public class Insercao
     private static final String DEFAULT_DB = "/tmp/pokemon.csv";
 
     // Contém as estatísticas que o enunciado pede.
-    private static final String LOG = "matrícula_insercao.txt";
+    private static final String LOG = "842986_insercao.txt";
     private static final long MATRICULA = 842986;
     private static long tempoExecucao;
 

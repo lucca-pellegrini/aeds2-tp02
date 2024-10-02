@@ -12,7 +12,7 @@ public class PesquisaSequencial
     private static final String DEFAULT_DB = "/tmp/pokemon.csv";
 
     // Contém as estatísticas que o enunciado pede.
-    private static final String LOG = "matrícula_sequencial.txt";
+    private static final String LOG = "842986_sequencial.txt";
     private static final long MATRICULA = 842986;
     private static int numComparacoes = 0;
     private static long tempoExecucao;

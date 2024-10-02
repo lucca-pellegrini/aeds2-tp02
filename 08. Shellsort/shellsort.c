@@ -15,7 +15,7 @@
 /// Definições dos tipos de dados. ////////////////////////////////////////////
 
 // Contém as estatísticas que o enunciado pede.
-#define LOG "matrícula_shellsort.txt"
+#define LOG "842986_shellsort.txt"
 #define MATRICULA 842986L
 static size_t num_comparacoes = 0;
 static struct timespec tempo_execucao = { 0 };
