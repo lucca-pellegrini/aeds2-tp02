@@ -553,12 +553,17 @@ int main(int argc, char **argv)
 
 static void bolha(Pokemon **vec, size_t n)
 {
-	for (size_t i = 0; i < n; ++i) {
+	bool trocou = true;
+
+	for (size_t i = 0; i < n && trocou; ++i) {
 		size_t ultima_troca = i;
+		trocou = false;
 
 		for (size_t j = n - 1; j > i; --j)
-			if (compara(vec[j], vec[j - 1]) < 0)
+			if (compara(vec[j], vec[j - 1]) < 0) {
+				trocou = true;
 				swap(vec, j, ultima_troca = j - 1);
+			}
 
 		i = ultima_troca;
 	}
