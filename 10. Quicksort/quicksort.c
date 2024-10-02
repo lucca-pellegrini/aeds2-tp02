@@ -570,29 +570,32 @@ static void quicksort_aux(Pokemon **vec, size_t esq, size_t dir)
 {
 	if (esq < dir) {
 		size_t pivo_idx = particiona(vec, esq, dir);
-		quicksort_aux(vec, esq, pivo_idx > 0 ? pivo_idx - 1 : 0);
+		quicksort_aux(vec, esq, pivo_idx);
 		quicksort_aux(vec, pivo_idx + 1, dir);
 	}
 }
 
-// Particiona o vetor.
+// Particiona o vetor usando o particionamento de Tony Hoare.
 static inline size_t particiona(Pokemon **vec, size_t esq, size_t dir)
 {
 	size_t mid = esq + (dir - esq) / 2; // Acha meio sem risco de overflow.
-	size_t pivo_idx = pivo(vec, esq, mid, dir);
-	swap(vec, pivo_idx, dir); // Troca pivô com `dir` para particionar.
+	size_t pivo_idx = pivo(vec, esq, mid, dir); // Escolhe o pivô.
+	Pokemon *pivo = vec[pivo_idx];
 
-	Pokemon *pivo = vec[dir];
 	size_t i = esq;
+	size_t j = dir;
 
-	for (size_t j = esq; j < dir; ++j) {
-		if (compara(vec[j], pivo) < 0) {
-			swap(vec, i, j);
+	for (;;) {
+		while (compara(vec[i], pivo) < 0)
 			++i;
-		}
+		while (compara(vec[j], pivo) > 0)
+			--j;
+		if (i >= j)
+			return j;
+		swap(vec, i, j);
+		++i;
+		--j;
 	}
-	swap(vec, i, dir);
-	return i;
 }
 
 // Função auxiliar para achar o pivô usando média de três.
