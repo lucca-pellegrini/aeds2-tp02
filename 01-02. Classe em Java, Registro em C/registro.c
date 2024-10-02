@@ -480,14 +480,12 @@ int main(int argc, char **argv)
 	fclose(csv); // Fecha o arquivo ao terminar.
 
 	// Lê as buscas da entrada padrão até encontrar "FIM".
-	while (getline(&input, &tam, stdin) != -1) {
-		if (strcmp(input, "FIM\n")) {
-			int idx = atoi(input) - 1;
-			if (idx > -1 && idx < n)
-				imprimir(pokemon[idx]);
-			else
-				puts("Pokémon indisponível.");
-		}
+	while (getline(&input, &tam, stdin) != -1 && strcmp(input, "FIM\n")) {
+		int idx = atoi(input) - 1;
+		if (idx > -1 && idx < n)
+			imprimir(pokemon[idx]);
+		else
+			puts("Pokémon indisponível.");
 	}
 
 	// Libera recursos.
