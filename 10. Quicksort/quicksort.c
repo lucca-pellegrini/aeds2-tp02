@@ -95,7 +95,7 @@ typedef struct {
 
 // Funções para cumprimento da questão.
 int main(int argc, char **argv);
-static void quicksort(Pokemon **vec, size_t esq, size_t dir);
+static void quicksort(Pokemon **vec, size_t n);
 static inline void swap(Pokemon **vec, size_t a, size_t b);
 
 // Funções para a implementação do objeto Pokémon.
@@ -523,7 +523,7 @@ int main(int argc, char **argv)
 
 	// Mede o tempo de ordenação. Printa os Pokémon em ordem.
 	clock_gettime(CLOCK_MONOTONIC, &tempo_inicial); // Mede tempo inicial.
-	quicksort(selecionados, 0, num_select - 1);
+	quicksort(selecionados, num_select);
 	clock_gettime(CLOCK_MONOTONIC, &tempo_final); // Mede tempo final.
 	for (int i = 0; i < num_select; ++i)
 		imprimir(selecionados[i]);
@@ -555,26 +555,63 @@ int main(int argc, char **argv)
 	return EXIT_SUCCESS;
 }
 
-static void quicksort(Pokemon **vec, size_t esq, size_t dir)
+// Função auxiliar para achar o pivô usando média de três.
+static inline size_t pivo(Pokemon **vec, size_t esq, size_t mid, size_t dir)
 {
-	if (esq < dir && esq >= 0) {
-		size_t i = esq, j = dir;
-		Pokemon *pivo = vec[(esq + dir) / 2];
-
-		while (i <= j) {
-			while (compara(vec[i], pivo) < 0)
-				++i;
-			while (compara(vec[j], pivo) > 0)
-				--j;
-			if (i <= j)
-				swap(vec, i++, j--);
-		}
-
-		if (esq < j)
-			quicksort(vec, esq, j);
-		if (i < dir)
-			quicksort(vec, i, dir);
+	size_t res;
+	if (compara(vec[esq], vec[mid]) < 0) {
+		if (compara(vec[mid], vec[dir]) < 0)
+			res = mid;
+		else if (compara(vec[esq], vec[dir]) < 0)
+			res = dir;
+		else
+			res = esq;
+	} else {
+		if (compara(vec[esq], vec[dir]) < 0)
+			res = esq;
+		else if (compara(vec[mid], vec[dir]) < 0)
+			res = dir;
+		else
+			res = mid;
 	}
+	return res;
+}
+
+// Particiona o vetor.
+static inline size_t particiona(Pokemon **vec, size_t esq, size_t dir)
+{
+	size_t mid = esq + (dir - esq) / 2; // Acha meio sem risco de overflow.
+	size_t pivo_idx = pivo(vec, esq, mid, dir);
+	swap(vec, pivo_idx, dir); // Troca pivô com `dir` para particionar.
+
+	Pokemon *pivo = vec[dir];
+	size_t i = esq;
+
+	for (size_t j = esq; j < dir; ++j) {
+		if (compara(vec[j], pivo) < 0) {
+			swap(vec, i, j);
+			++i;
+		}
+	}
+	swap(vec, i, dir);
+	return i;
+}
+
+// Função auxiliar que faz o quicksort recursivamente.
+static void quicksort_aux(Pokemon **vec, size_t esq, size_t dir)
+{
+	if (esq < dir) {
+		size_t pivo_idx = particiona(vec, esq, dir);
+		quicksort_aux(vec, esq, pivo_idx > 0 ? pivo_idx - 1 : 0);
+		quicksort_aux(vec, pivo_idx + 1, dir);
+	}
+}
+
+// Ponto de entrada do quicksort para evitar passar `esq` e `dir` em main.
+static void quicksort(Pokemon **vec, size_t n)
+{
+	if (n > 1)
+		quicksort_aux(vec, 0, n - 1);
 }
 
 static inline void swap(Pokemon **vec, size_t a, size_t b)
