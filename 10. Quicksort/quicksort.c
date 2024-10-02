@@ -4,7 +4,6 @@
 #include <errno.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -96,10 +95,10 @@ typedef struct {
 
 // Funções para cumprimento da questão.
 int main(int argc, char **argv);
-static void quicksort(Pokemon **vec, int n);
-static void quicksort_aux(Pokemon **vec, int esq, int dir);
-static inline int media3(Pokemon **vec, int esq, int mid, int dir);
-static inline void swap(Pokemon **vec, int a, int b);
+static void quicksort(Pokemon **vec, size_t n);
+static void quicksort_aux(Pokemon **vec, size_t esq, size_t dir);
+static inline size_t media3(Pokemon **vec, size_t esq, size_t mid, size_t dir);
+static inline void swap(Pokemon **vec, size_t a, size_t b);
 
 // Funções para a implementação do objeto Pokémon.
 void ler(Pokemon *restrict p, char *str);
@@ -559,40 +558,39 @@ int main(int argc, char **argv)
 }
 
 // Ponto de entrada do quicksort para evitar passar `esq` e `dir` em main.
-static void quicksort(Pokemon **vec, int n)
+static void quicksort(Pokemon **vec, size_t n)
 {
 	if (n > 1)
 		quicksort_aux(vec, 0, n - 1);
 }
 
 // Função auxiliar que faz o quicksort recursivamente.
-static void quicksort_aux(Pokemon **vec, int esq, int dir)
+static void quicksort_aux(Pokemon **vec, size_t esq, size_t dir)
 {
-	int mid = esq + (dir - esq) / 2; // Acha meio sem risco de overflow.
+	size_t mid = esq + (dir - esq) / 2; // Acha meio sem risco de overflow.
 	Pokemon *pivo = vec[media3(vec, esq, mid, dir)];
+	size_t i = esq, j = dir;
 
-	int i = esq;
-	int j = dir;
-
-	while (i <= j) {
+	while (i <= j && j != SIZE_MAX) {
 		while (compara(vec[i], pivo) < 0)
 			++i;
-		while (compara(vec[j], pivo) > 0)
+		while (j > 0 && compara(vec[j], pivo) > 0)
 			--j;
 		if (i <= j)
 			swap(vec, i++, j--);
 	}
 
-	if (esq < j)
+	// Verificação adicional para underflow de `j`.
+	if (esq < j && j != SIZE_MAX)
 		quicksort_aux(vec, esq, j);
 	if (i < dir)
 		quicksort_aux(vec, i, dir);
 }
 
 // Função auxiliar para achar o pivô usando média de três.
-static inline int media3(Pokemon **vec, int esq, int mid, int dir)
+static inline size_t media3(Pokemon **vec, size_t esq, size_t mid, size_t dir)
 {
-	int res;
+	size_t res;
 
 	if (compara(vec[esq], vec[mid]) < 0) {
 		if (compara(vec[mid], vec[dir]) < 0)
@@ -613,7 +611,7 @@ static inline int media3(Pokemon **vec, int esq, int mid, int dir)
 	return res;
 }
 
-static inline void swap(Pokemon **vec, int a, int b)
+static inline void swap(Pokemon **vec, size_t a, size_t b)
 {
 	Pokemon *temp = vec[a];
 	vec[a] = vec[b];
