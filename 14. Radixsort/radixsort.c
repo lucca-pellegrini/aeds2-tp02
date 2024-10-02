@@ -565,8 +565,8 @@ static void radixsort(Pokemon **vec, size_t n)
 	// Se as primeiras habilidades forem iguais, ordena pelo nome.
 	for (size_t i = 0; i < n - 1; i++)
 		for (size_t j = i + 1;
-			j < n && strcmp(first_ab(vec[i]), first_ab(vec[j])) == 0;
-			j++)
+		     j < n && strcmp(first_ab(vec[i]), first_ab(vec[j])) == 0;
+		     j++)
 			if (strcmp(vec[i]->name, vec[j]->name) > 0)
 				swap(vec, i, j);
 }
