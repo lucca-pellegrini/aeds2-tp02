@@ -44,6 +44,9 @@ public class PesquisaSequencial
             while (!(input = sc.nextLine()).equals("FIM"))
                 selecionados.add(pokemon.get(Integer.parseInt(input) - 1));
 
+            // Libera os Pokémon não selecionados.
+            pokemon = null;
+
             // Mede o tempo inicial.
             long tempoInicial = System.nanoTime();
 

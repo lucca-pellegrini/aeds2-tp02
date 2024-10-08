@@ -43,6 +43,9 @@ public class Heapsort
             while (!(input = sc.nextLine()).equals("FIM"))
                 selecionados.add(pokemon.get(Integer.parseInt(input) - 1));
 
+            // Libera os Pokémon não selecionados.
+            pokemon = null;
+
             // Mede o tempo de execução na ordenação.
             long tempoInicial = System.nanoTime();
             heapsort(selecionados);
