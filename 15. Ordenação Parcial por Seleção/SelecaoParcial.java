@@ -12,7 +12,7 @@ public class SelecaoParcial
     private static final String DEFAULT_DB = "/tmp/pokemon.csv";
 
     // Contém as estatísticas que o enunciado pede.
-    private static final String LOG = "842986_selecao.txt";
+    private static final String LOG = "842986_selecaoParcial.txt";
     private static final long MATRICULA = 842986;
     private static int numComparacoes = 0;
     private static long tempoExecucao;
